@@ -19,4 +19,8 @@ cc.Class({
     update: function (dt) {
 
     },
+
+    runAction:function(){
+        
+    }
 });
