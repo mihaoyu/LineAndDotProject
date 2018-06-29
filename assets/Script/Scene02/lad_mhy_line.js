@@ -30,6 +30,8 @@ cc.Class({
     },
 
     start () {
+        this.origin_x = 0;
+        this.origin_y = 0;
         this.touchEventOn();
     },
 
@@ -66,6 +68,9 @@ cc.Class({
         let pos_x = position.x;
         let pos_y = position.y;
 
+        this.origin_x = this.node.x;
+        this.origin_y = this.node.y;
+
         //传送给主场景，告知是哪个line开始动
         global.setMoveBallAndLine(this.line_index, this.ball_index_1, this.ball_index_2,pos_x,pos_y);
         cc.game.emit("lad_line_start");
@@ -78,13 +83,21 @@ cc.Class({
         console.log('-=============line点击移动')
         //let touch_position = event.touch.getLocation();
         //cc.game.emit("stop_action");
+
+        var delta = event.touch.getDelta();
+        this.node.x += delta.x;
+        this.node.y += delta.y;
     },
 
     touchEnd: function (event, touch) {
         if (event.getTouches().length > 1) {
             return;
         }
-                console.log('-=============line点击结束')
+
+        this.node.x = this.origin_x;
+        this.node.y = this.origin_y;
+                
+        console.log('-=============line点击结束')
         //告知主场景，已经不移动了
         //cc.game.emit("lad_line_end");
     },

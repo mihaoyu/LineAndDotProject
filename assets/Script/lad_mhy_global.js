@@ -8,6 +8,8 @@ var lad_mhy_globals = {
     BASIC_WIDTH:5,
     BASIC_HEIGHT:5,
     BASIC_BALLS_COUNT:25,
+    NEAR_DISTANCE:10,
+    BALL_DISTANCE:120,
 
     //游戏枚举
     GAME_MODEL: {

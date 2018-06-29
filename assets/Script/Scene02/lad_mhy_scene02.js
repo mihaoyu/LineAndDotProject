@@ -8,13 +8,12 @@ cc.Class({
         ball_blue:cc.SpriteFrame,
         ball_red:cc.SpriteFrame,
         ball_layer:cc.Node,
-        click_area:cc.Node,
         bg:cc.Node
     },
 
     // use this for initialization
     onLoad: function () {
-        this.offset_x = -200;
+        this.offset_x = -240;
         this.offset_y = -200-225;
         this.createBasicBalls();
         this.initGameOnEvents();
@@ -56,10 +55,11 @@ cc.Class({
         this.basic_balls_array = [];
         for (let i = 0; i < global.BASIC_BALLS_COUNT; i++) {
             var ball_node = cc.instantiate(this.ball_prefab);
+            ball_node.getChildByName('num').getComponent(cc.Label).string = i;
             ball_node.scale = 0.6;
             ball_node.parent = this.ball_layer;
-            ball_node.x = this.offset_x + (i % global.BASIC_WIDTH) * 90;
-            ball_node.y = this.offset_y + Math.floor(i / global.BASIC_HEIGHT) * 90;
+            ball_node.x = this.offset_x + (i % global.BASIC_WIDTH) * global.BALL_DISTANCE;
+            ball_node.y = this.offset_y + Math.floor(i / global.BASIC_HEIGHT) * global.BALL_DISTANCE;
             this.basic_balls_array.push(ball_node);
         }
     },
@@ -178,45 +178,55 @@ cc.Class({
     },
 
     fingerStart: function () {
-        this.lines_array[global.current_move_line_index].active = false;
+        //this.lines_array[global.current_move_line_index].active = false;
         this.addLines();
         this.addBalls();
     },
 
     touchStart: function (event, touch) {
-        console.log('=============界面点击开始')
+        console.log('===============界面开始')
+
+        if (event.getTouches().length > 1) {
+            return;
+        }
+
+        //if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1) return;
     },
 
     touchMove:function(event,touch){
-        console.log('===========界面点击移动')
-
-        //多点触控屏蔽
         if (event.getTouches().length > 1) {
-            //恢复之前的状态
             return;
         }
 
         if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1)return;
 
         let position = this.node.convertToNodeSpaceAR(event.getLocation());
-        let pos_x = position.x;
-        let pos_y = position.y;
+        let pos_x = 0;
+        let pos_y = 0;
+        //根据移动点创建新的node,line
+        //后期添加一个接近点判断
+        let near_ball_index = this.checkIfNearOtherNodes(pos_x,pos_y);
+        if(!(near_ball_index === -1)){
+            pos_x = position.x;
+            pos_y = position.y;
+        }else{
+            pos_x = this.basic_balls_array[near_ball_index].x;
+            pos_y = this.basic_balls_array[near_ball_index].y;
+        }
 
         this.target_ball.x = pos_x;
         this.target_ball.y = pos_y;
-        global.current_target_position = cc.p(pos_x,pos_y);
-        this.setLineInfo(this.selected_line_1, global.current_move_ball_1,1, true, global.current_target_position);
-        this.setLineInfo(this.selected_line_2, global.current_move_ball_2,1, true, global.current_target_position);
+        global.current_target_position = cc.p(pos_x, pos_y);
+        this.setLineInfo(this.selected_line_1, global.current_move_ball_1, 1, true, global.current_target_position);
+        this.setLineInfo(this.selected_line_2, global.current_move_ball_2, 1, true, global.current_target_position);
 
-        //根据移动点创建新的node,line
-        //后期添加一个接近点判断
+        //显示交集线是否有x号
+
+        
     },
 
     touchEnd:function(event){
-                console.log('===============界面点击结束')
-        //多点触控屏蔽
         if (event.getTouches().length > 1) {
-            //恢复之前的状态
             return;
         }
         if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1) return;
@@ -229,14 +239,73 @@ cc.Class({
             this.selected_line_2.active = false;
             this.target_ball.active  = false;
         }
-        this.lines_array[global.current_move_line_index].active = true;
+
+        //判断是否放到了正确的位置
+
+        //如果正确，判断是否过关，过关则显示过关效果，否则按下了按钮,添加线
+        
+        //this.lines_array[global.current_move_line_index].active = true;
     },
 
-    setEndBallNode:function(ball_index){
-        //设置ballnode点
+    checkIfNearOtherNodes:function(pos_x,pos_y){
+        let in_row = -1;
+        let in_column = -1;
+
+        for(let i = 0;i<5;i++){
+            pos_y > this.basic_balls_array[i * 2].y ? in_row = i : 1 ;
+            pos_x > this.basic_balls_array[i].x ? in_column = i : 1;
+        }
+
+        if(in_row === 4 && in_column === 4){
+            //只判断0这个点
+            //this.targetBallSet(0);
+            return 0;
+        }
+
+        if (in_row === 0 && in_column === 0) {
+            //只判断24这个点
+            //this.targetBallSet(24);
+            return 24;
+        }
+
+
+        if(in_row === 4){
+            let ball_index = 0;
+            for(let i =0;i<2;i++){
+                ball_index = i + 20 + in_column;
+                if (Math.abs(this.basic_balls_array[ball_index].x - pos_x) < global.global.NEAR_DISTANCE || Math.abs(this.basic_balls_array[ball_index].y - pos_y) < global.global.NEAR_DISTANCE){
+                    this.targetBallSet(ball_index);
+                    return ball_index;
+                }
+            }
+            return -1;
+        }
+
+        if(in_column === 4){
+            let ball_index = 0;            
+            for (let i = 0; i < 2; i++) {
+                ball_index = (in_row + i + 1)*5-1;
+                if (Math.abs(this.basic_balls_array[ball_index].x - pos_x) < global.global.NEAR_DISTANCE || Math.abs(this.basic_balls_array[ball_index].y - pos_y) < global.global.NEAR_DISTANCE) {
+                    //this.targetBallSet(ball_index);
+                    return ball_index;
+                }
+            }
+            return -1;
+        }
+
+        let temp_table = [in_row * 5 + in_column, in_row * 5 + in_column + 1, (in_row + 1) * 5 + in_column, (in_row + 1) * 5 + in_column + 1];
+        let ball_index = 0;
+        for(let i = 0;i<4;i++){
+            ball_index = temp_table[i];
+            if (Math.abs(this.basic_balls_array[ball_index].x - pos_x) < global.global.NEAR_DISTANCE || Math.abs(this.basic_balls_array[ball_index].y - pos_y) < global.global.NEAR_DISTANCE) {
+                //this.targetBallSet(ball_index);
+                return ball_index;
+            }
+        }
+        return -1;
     },
 
+    setEndBallNode:function(ball_index){},
     fingerMove: function () {},
-
     fingerEnd: function () {},
 });
