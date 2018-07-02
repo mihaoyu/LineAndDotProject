@@ -5,13 +5,13 @@ cc.Class({
     properties: {
         line_prefab:cc.Prefab,
         ball_prefab:cc.Prefab,
+        wrong_prefab:cc.Prefab,
         ball_blue:cc.SpriteFrame,
         ball_red:cc.SpriteFrame,
         ball_layer:cc.Node,
         bg:cc.Node
     },
 
-    // use this for initialization
     onLoad: function () {
         this.offset_x = -240;
         this.offset_y = -200-225;
@@ -25,16 +25,21 @@ cc.Class({
     start:function(){
         global.initMoveBallAndLine();
         this.initLevelBalls();
+        this.initWrongTags();
     },
 
     initLevelBalls: function (levels) {
         this.createMoveLinesAndBalls();
     },
 
+    initWrongTags:function(){
+        this.wrong_tags_array = [];
+    },
+
     initGameOnEvents: function () {
         cc.game.on("lad_line_start", this.fingerStart, this);
-        cc.game.on("lad_line_move", this.fingerMove, this);
-        cc.game.on("lad_line_end", this.fingerEnd, this);
+        //cc.game.on("lad_line_move", this.fingerMove, this);
+        //cc.game.on("lad_line_end", this.fingerEnd, this);
 
         this.bg.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.bg.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
@@ -43,8 +48,8 @@ cc.Class({
 
     onDestroy:function(){
         cc.game.off("lad_line_start", this.fingerStart, this);
-        cc.game.off("lad_line_move", this.fingerMove, this);
-        cc.game.off("lad_line_end", this.fingerEnd, this);
+        //cc.game.off("lad_line_move", this.fingerMove, this);
+        //cc.game.off("lad_line_end", this.fingerEnd, this);
         
         this.bg.off(cc.Node.EventType.TOUCH_MOVE, this.touchStart, this);
         this.bg.off(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
@@ -178,7 +183,6 @@ cc.Class({
     },
 
     fingerStart: function () {
-        //this.lines_array[global.current_move_line_index].active = false;
         this.addLines();
         this.addBalls();
     },
@@ -205,8 +209,11 @@ cc.Class({
         let pos_y = 0;
         //根据移动点创建新的node,line
         //后期添加一个接近点判断
-        let near_ball_index = this.checkIfNearOtherNodes(pos_x,pos_y);
-        if(!(near_ball_index === -1)){
+        let near_ball_index = this.checkIfNearOtherNodes(position.x,position.y);
+
+        console.log('======================附近的点设置为',near_ball_index)
+
+        if(near_ball_index === -1){
             pos_x = position.x;
             pos_y = position.y;
         }else{
@@ -221,8 +228,18 @@ cc.Class({
         this.setLineInfo(this.selected_line_2, global.current_move_ball_2, 1, true, global.current_target_position);
 
         //显示交集线是否有x号
+        //计算wrong_num
+        for (let i = 0;i < this.lines_array.length;i++){
+            if(this.getCrossPoints(this.selected_line_1,this.lines_array[i])!=-1){
+                //有交线
 
-        
+            }
+            
+            if (this.getCrossPoints(this.selected_line_2, this.lines_array[i]) != -1){
+                //有交线
+            }
+        }
+        this.wrong_num = this.wrong_tags_array.length;
     },
 
     touchEnd:function(event){
@@ -235,58 +252,112 @@ cc.Class({
         if (global.current_move_ball_1 !== -1 || global.current_move_ball_2 !== -1) {
             global.current_move_ball_1 = -1;
             global.current_move_ball_2 = -1;
-            this.selected_line_1.active = false;
-            this.selected_line_2.active = false;
-            this.target_ball.active  = false;
         }
 
-        //判断是否放到了正确的位置
+        if (this.checkIfACorrectBall()) {
+            //正确位置
+            //原来那根线记得干掉
+            this.init_balls_array.push(this.target_ball);
+            this.lines_array.push(this.selected_line_1);
+            this.lines_array.push(this.selected_line_2);
+
+            this.target_ball = -1;
+            this.selected_line_1 = -1;
+            this.selected_line_2 = -1;
+        }else{
+            //错误位置
+            //回弹效果，暂时未添加
+            this.selected_line_1.active = false;
+            this.selected_line_2.active = false;
+            this.target_ball.active = false;
+            //对错号数组进行处理
+            this.wrong_tags_array = [];
+            return;
+        }
 
         //如果正确，判断是否过关，过关则显示过关效果，否则按下了按钮,添加线
-        
-        //this.lines_array[global.current_move_line_index].active = true;
+        if (this.checkIfPassLevel()){
+            //过关
+            //闪亮代码
+            //下一关内容刷新
+        }else{
+            //未过关，继续
+        }
     },
 
     checkIfNearOtherNodes:function(pos_x,pos_y){
         let in_row = -1;
         let in_column = -1;
 
+        //防止小数太多计算太多，以后可能会删掉此代码
+        pos_x = parseInt(pos_x);
+        pos_y = parseInt(pos_y);
+
+        //console.log('-=--------------------我点击的位置',pos_x,pos_y)
+
         for(let i = 0;i<5;i++){
-            pos_y > this.basic_balls_array[i * 2].y ? in_row = i : 1 ;
-            pos_x > this.basic_balls_array[i].x ? in_column = i : 1;
+            pos_y > this.basic_balls_array[i * 5].y ? in_row = i : 1 ;
+            pos_x > this.basic_balls_array[i].x ? in_column = i: 1;
+        }
+
+        //console.log('===================确定当前的行列',in_row,in_column)
+
+        if (in_row === -1 && in_column === -1) {
+            if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[0])) {
+                return 0;
+            }
+            return -1;
         }
 
         if(in_row === 4 && in_column === 4){
-            //只判断0这个点
-            //this.targetBallSet(0);
-            return 0;
+            if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[24])) {
+                return 24;
+            }
+            return -1;
         }
 
-        if (in_row === 0 && in_column === 0) {
-            //只判断24这个点
-            //this.targetBallSet(24);
-            return 24;
-        }
-
-
+        //这里没有判断in_column，多判断了两次待后面优化
         if(in_row === 4){
             let ball_index = 0;
             for(let i =0;i<2;i++){
-                ball_index = i + 20 + in_column;
-                if (Math.abs(this.basic_balls_array[ball_index].x - pos_x) < global.global.NEAR_DISTANCE || Math.abs(this.basic_balls_array[ball_index].y - pos_y) < global.global.NEAR_DISTANCE){
-                    this.targetBallSet(ball_index);
+                ball_index = i + 20;
+                if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
                     return ball_index;
                 }
             }
             return -1;
         }
 
+        //这里没有判断in_row，多判断了两次待后面优化
         if(in_column === 4){
             let ball_index = 0;            
+            for (let i = 0; i < 4; i++) {
+                ball_index = (i+1)*5-1;
+                if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
+                    return ball_index;
+                }
+            }
+            return -1;
+        }
+
+        //这里没有判断in_column，多判断了两次待后面优化
+        if (in_row === -1) {
+            let ball_index = 0;
+            for (let i = 0; i < 4; i++) {
+                ball_index = i + in_column;
+                if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
+                    return ball_index;
+                }
+            }
+            return -1; 
+        }
+
+        //这里没有判断in_row，多判断了两次待后面优化
+        if (in_column === -1) {
+            let ball_index = 0;
             for (let i = 0; i < 2; i++) {
-                ball_index = (in_row + i + 1)*5-1;
-                if (Math.abs(this.basic_balls_array[ball_index].x - pos_x) < global.global.NEAR_DISTANCE || Math.abs(this.basic_balls_array[ball_index].y - pos_y) < global.global.NEAR_DISTANCE) {
-                    //this.targetBallSet(ball_index);
+                ball_index = i * 5;
+                if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
                     return ball_index;
                 }
             }
@@ -297,12 +368,56 @@ cc.Class({
         let ball_index = 0;
         for(let i = 0;i<4;i++){
             ball_index = temp_table[i];
-            if (Math.abs(this.basic_balls_array[ball_index].x - pos_x) < global.global.NEAR_DISTANCE || Math.abs(this.basic_balls_array[ball_index].y - pos_y) < global.global.NEAR_DISTANCE) {
-                //this.targetBallSet(ball_index);
+            //console.log('===================ballINdex',ball_index)
+            let juli1 = Math.abs(this.basic_balls_array[ball_index].x - pos_x)
+            let juli2 = Math.abs(this.basic_balls_array[ball_index].y - pos_y)
+            //console.log('=================之间距离',juli1,juli2)
+            if(this.checkIfNear(pos_x,pos_y,this.basic_balls_array[ball_index])){
                 return ball_index;
             }
         }
         return -1;
+    },
+
+    checkIfNear:function(pos_x,pos_y,point){
+        let if_near = false;
+        if ((Math.abs(pos_x - point.x) < global.NEAR_DISTANCE) && (Math.abs(pos_y - point.y) < global.NEAR_DISTANCE)){if_near = true}
+        return if_near;
+    },
+
+    checkIfACorrectBall:function(){
+        return this.wrong_num === 0;
+    },
+
+    checkIfPassLevel:function(){
+        let if_pass = true;
+        return if_pass;
+    },
+
+    getCrossPoints:function(p,m){
+        //a = cross_point
+        //p = line_1 ,m = line_2，line_1是可移动线，line_2是固定线
+        //y = ax+b
+
+        let a = -1;
+        let a1 = (p.point1.y - p.point2.y)/(p.point1.x - p.point2.x);
+        let b1 = p.point1.y - a1*p.point1.x;
+
+        let a2 = (m.point1.y - m.point2.y) / (m.point1.x - m.point2.x);
+        let b2 = m.point1.y - a2*m.point1.x;
+
+        if(a1 === a2){
+            //如果两个点都在当前line_1上，则表示重叠相交，相交点以线2的中间点
+            if() //line_2中的所有点在
+
+
+            //如果上述状况未出现则为正常情况，无视 
+        }else{
+            a = {};
+            a.x = (b1 - b2) / (a2 - a1);
+            a.y = a1 * a.x + b1;
+        }
+        return a; 
     },
 
     setEndBallNode:function(ball_index){},

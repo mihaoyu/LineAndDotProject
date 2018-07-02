@@ -546,6 +546,9 @@
     "ball_prefab": {
       "__uuid__": "a059ed8b-fca7-42e6-b590-ae8cced2b67d"
     },
+    "wrong_prefab": {
+      "__uuid__": "f551601c-fb5c-4143-8c0f-b6fa9df3dc40"
+    },
     "ball_blue": {
       "__uuid__": "e157aeb9-ba69-4f07-8823-ea02022a8994"
     },
@@ -555,7 +558,6 @@
     "ball_layer": {
       "__id__": 7
     },
-    "click_area": null,
     "bg": {
       "__id__": 3
     }

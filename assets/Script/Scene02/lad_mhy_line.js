@@ -81,12 +81,11 @@ cc.Class({
             return;
         }
         console.log('-=============line点击移动')
-        //let touch_position = event.touch.getLocation();
-        //cc.game.emit("stop_action");
-
         var delta = event.touch.getDelta();
         this.node.x += delta.x;
         this.node.y += delta.y;
+
+        this.node.opacity = 0;
     },
 
     touchEnd: function (event, touch) {
@@ -96,9 +95,16 @@ cc.Class({
 
         this.node.x = this.origin_x;
         this.node.y = this.origin_y;
-                
-        console.log('-=============line点击结束')
-        //告知主场景，已经不移动了
-        //cc.game.emit("lad_line_end");
+        this.node.opacity = 255;
+
+        //通过判断当前点是否是正确可落点，来销毁该线段
     },
+
+    destorySelf:function(){
+        this.node.removeFromParent();
+    },
+
+    getBalls:function(){
+        return [this.ball_index_1,this.ball_index_2];
+    }
 });

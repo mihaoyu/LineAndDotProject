@@ -8,7 +8,7 @@ var lad_mhy_globals = {
     BASIC_WIDTH:5,
     BASIC_HEIGHT:5,
     BASIC_BALLS_COUNT:25,
-    NEAR_DISTANCE:10,
+    NEAR_DISTANCE:30,
     BALL_DISTANCE:120,
 
     //游戏枚举
@@ -303,7 +303,7 @@ var lad_mhy_globals = {
     },
 
     initGamePlayData:function(){
-        this.current_level = 1;
+        this.current_level = 2;
         this.current_model = this.GAME_MODEL.MODEL_1;
     },
 
@@ -357,6 +357,16 @@ var lad_mhy_globals = {
             }            
         }
         return if_in;
+    },
+
+    checkIfACorrectBall:function(){
+        let if_correct = false;
+        return if_correct;
+    },
+
+    checkIfPassLevel:function(){
+        let if_pass = true;
+        return if_pass;
     },
 
     //全局功能
