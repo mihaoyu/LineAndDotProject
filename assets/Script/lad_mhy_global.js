@@ -348,6 +348,14 @@ var lad_mhy_globals = {
         return Math.sqrt(diff_x*diff_x+diff_y*diff_y);
     },
 
+    getCrossPoints:function(point_a1,point_a2,point_b1,point_b2){
+        let m,n;
+    },
+
+    getLine:function(point_a,point_b){
+        return [(point_b.y-point_b.y),(point_a.x-point_b.x),(point_b.x*point_a.y-point_a.x*point_b.y)];
+    },
+
     checkIfInArray:function(num,array){
         let if_in = false;
         for (let index = 0; index < array.length; index++) {

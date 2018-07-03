@@ -394,29 +394,24 @@ cc.Class({
         return if_pass;
     },
 
+    //判断交点
     getCrossPoints:function(p,m){
         //a = cross_point
         //p = line_1 ,m = line_2，line_1是可移动线，line_2是固定线
         //y = ax+b
 
         let a = -1;
-        let a1 = (p.point1.y - p.point2.y)/(p.point1.x - p.point2.x);
-        let b1 = p.point1.y - a1*p.point1.x;
+        let p_point1 = cc.p(this.basic_balls_array[p.getComponent('lad_mhy_line').getBalls[0]].x, this.basic_balls_array[p.getComponent('lad_mhy_line').getBalls[0]].y);
+        let p_point2 = cc.p(this.basic_balls_array[p.getComponent('lad_mhy_line').getBalls[1]].x, this.basic_balls_array[p.getComponent('lad_mhy_line').getBalls[1]].y);
 
-        let a2 = (m.point1.y - m.point2.y) / (m.point1.x - m.point2.x);
-        let b2 = m.point1.y - a2*m.point1.x;
-
-        if(a1 === a2){
-            //如果两个点都在当前line_1上，则表示重叠相交，相交点以线2的中间点
-            if() //line_2中的所有点在
+        let m_point1 = cc.p(this.basic_balls_array[m.getComponent('lad_mhy_line').getBalls[0]].x, this.basic_balls_array[p.getComponent('lad_mhy_line').getBalls[0]].y);
+        let m_point2 = cc.p(this.basic_balls_array[m.getComponent('lad_mhy_line').getBalls[1]].x, this.basic_balls_array[p.getComponent('lad_mhy_line').getBalls[1]].y);
 
 
-            //如果上述状况未出现则为正常情况，无视 
-        }else{
-            a = {};
-            a.x = (b1 - b2) / (a2 - a1);
-            a.y = a1 * a.x + b1;
-        }
+        
+
+
+
         return a; 
     },
 
