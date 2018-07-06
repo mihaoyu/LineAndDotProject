@@ -105,6 +105,7 @@ cc.Class({
     },
 
     getBalls:function(){
+        console.log('=========================球的索引',this.ball_index_1,this.ball_index_2)
         return [this.ball_index_1,this.ball_index_2];
     }
 });

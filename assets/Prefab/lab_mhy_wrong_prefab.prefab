@@ -40,7 +40,7 @@
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0
+      "y": 0.5
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -49,8 +49,8 @@
     },
     "_rotationX": 0,
     "_rotationY": 0,
-    "_scaleX": 1,
-    "_scaleY": 1,
+    "_scaleX": 0.5,
+    "_scaleY": 0.5,
     "_position": {
       "__type__": "cc.Vec2",
       "x": -423,
@@ -106,7 +106,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "f551601c-fb5c-4143-8c0f-b6fa9df3dc40"
     },
     "fileId": "f2Af3y99RLMqN3XbGXXp8J",
     "sync": false

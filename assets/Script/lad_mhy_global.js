@@ -286,6 +286,48 @@ var lad_mhy_globals = {
         "6_11_5,11_5_15,11_15_16,13_18_22,18_22_23,6_5_1,6_1_4,6_4_9,5_1_6,6_9_11,9_11_13,9_13_14,11_13_8,11_8_7,11_7_12,13_22_12",
         "11_13_0,11_0_5,11_5_10,11_10_15,11_15_20,11_20_21,11_21_15,11_15_16,11_16_10,13_0_11,0_11_6,11_6_5,13_11_4,11_4_8,13_4_9,13_9_14,13_14_18,14_18_19,18_19_23,19_23_24,18_23_19,13_18_14,11_8_13,8_13_9,11_13_6,13_6_8,11_6_12,11_12_16,6_12_11,13_8_12,13_12_18,8_12_13,6_8_12,12_16_17,16_17_21,12_17_16,12_18_17,18_17_23,12_17_18",
     ],
+
+    //闪光shader
+    FLUXAY_VERT : `
+        attribute vec4 a_position;
+        attribute vec2 a_texCoord;
+        attribute vec4 a_color;
+        varying vec2 v_texCoord;
+        varying vec4 v_fragmentColor;
+        void main()
+        {
+            gl_Position = CC_PMatrix * a_position;
+            v_fragmentColor = a_color;
+            v_texCoord = a_texCoord;
+        }
+    `,
+
+     // 流光特效
+    FLUXAY_FRAG : `
+        #ifdef GL_ES
+        precision mediump float;
+        #endif
+        varying vec2 v_texCoord;
+        uniform float time;
+        void main()
+        {
+            vec4 src_color = texture2D(CC_Texture0, v_texCoord).rgba;
+
+            float width = 0.02;       //流光的宽度范围 (调整该值改变流光的宽度)
+            float start = tan(time/1.414);  //流光的起始x坐标
+            float strength = 0.006;   //流光增亮强度   (调整该值改变流光的增亮强度)
+            float offset = 0.5;      //偏移值         (调整该值改变流光的倾斜程度)
+            if( v_texCoord.x < (start - offset * v_texCoord.y) &&  v_texCoord.x > (start - offset * v_texCoord.y - width))
+            {
+                vec3 improve = strength * vec3(255, 255, 255);
+                vec3 result = improve * vec3( src_color.r, src_color.g, src_color.b);
+                gl_FragColor = vec4(result, src_color.a);
+
+            }else{
+                gl_FragColor = src_color;
+            }
+        }
+    `,
     
     initMoveBallAndLine:function(){
         this.current_move_line_index = -1;
@@ -303,7 +345,7 @@ var lad_mhy_globals = {
     },
 
     initGamePlayData:function(){
-        this.current_level = 2;
+        this.current_level = 1;
         this.current_model = this.GAME_MODEL.MODEL_1;
     },
 
