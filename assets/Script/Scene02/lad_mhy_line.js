@@ -41,28 +41,29 @@ cc.Class({
 
     setLineIndex:function(a,b,c){
         this.line_index = a;
-        this.ball_index_1 = b;
-        this.ball_index_2 = c;
+        b<c? this.ball_index_1 = c: this.ball_index_1 = b;
+        b<c? this.ball_index_2 = b: this.ball_index_2 = c;
     },
 
     touchEventOn: function () {
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
-        this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        //this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
     },
 
     touchEventOff: function () {
         this.node.off(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.node.off(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
-        this.node.off(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        //this.node.off(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
     },
 
     touchStart: function (event, touch) {
         if (event.getTouches().length > 1) {
             return;
         }
-                        console.log('-=============line点击开始',this)
 
+        //做个处理，如果已经有了current_line则忽略其他的移动行为
+        console.log('-=============line点击开始',this)
 
         let position = this.node.convertToNodeSpaceAR(event.getLocation());
         let pos_x = position.x;
@@ -80,32 +81,35 @@ cc.Class({
         if (event.getTouches().length > 1) {
             return;
         }
-        console.log('-=============line点击移动')
         var delta = event.touch.getDelta();
         this.node.x += delta.x;
         this.node.y += delta.y;
 
-        this.node.opacity = 0;
+        //this.node.opacity = 0;
     },
 
     touchEnd: function (event, touch) {
         if (event.getTouches().length > 1) {
             return;
         }
+    },
 
+    resetSelf:function(){
         this.node.x = this.origin_x;
         this.node.y = this.origin_y;
         this.node.opacity = 255;
-
-        //通过判断当前点是否是正确可落点，来销毁该线段
     },
 
     destorySelf:function(){
         this.node.removeFromParent();
     },
 
-    getBalls:function(){
-        console.log('=========================球的索引',this.ball_index_1,this.ball_index_2)
+    getBallsIndex: function () {
+        //console.log('===================getBallIndex',this.ball_index_1,this.ball_index_2)
         return [this.ball_index_1,this.ball_index_2];
-    }
+    },
+
+    getLineIndex:function(){
+        return this.line_index;
+    },
 });

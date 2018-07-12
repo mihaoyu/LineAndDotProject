@@ -10,6 +10,7 @@ var lad_mhy_globals = {
     BASIC_BALLS_COUNT:25,
     NEAR_DISTANCE:30,
     BALL_DISTANCE:120,
+    BASIC_BALL_RADIUS:0,
 
     //游戏枚举
     GAME_MODEL: {
@@ -26,6 +27,8 @@ var lad_mhy_globals = {
     level_config:{},
 
     current_move_line_index:-1,
+    current_selected_line_index_1:-1,
+    current_selected_line_index_2:-1,
     current_move_ball_index_1:-1,
     current_move_ball_index_2:-1,
     current_move_ball_1: -1,
@@ -117,7 +120,7 @@ var lad_mhy_globals = {
         "11_13",
     ],
 
-    game_goal_line_config:[
+    game_target_line_config:[
         "2_10,2_14,10_22,22_14",
         "6_10,12_6,10_16,16_12,12_8,14_8,12_18,14_18",
         "7_6,16_22,18_8,16_6,7_8,18_22",
@@ -287,6 +290,8 @@ var lad_mhy_globals = {
         "11_13_0,11_0_5,11_5_10,11_10_15,11_15_20,11_20_21,11_21_15,11_15_16,11_16_10,13_0_11,0_11_6,11_6_5,13_11_4,11_4_8,13_4_9,13_9_14,13_14_18,14_18_19,18_19_23,19_23_24,18_23_19,13_18_14,11_8_13,8_13_9,11_13_6,13_6_8,11_6_12,11_12_16,6_12_11,13_8_12,13_12_18,8_12_13,6_8_12,12_16_17,16_17_21,12_17_16,12_18_17,18_17_23,12_17_18",
     ],
 
+    target_ball_position:[],
+
     //闪光shader
     FLUXAY_VERT : `
         attribute vec4 a_position;
@@ -329,10 +334,24 @@ var lad_mhy_globals = {
         }
     `,
     
+    //生成伪目标坐标
+    setTargetBallPosition:function(){
+        //这个以后还要变，再说
+        let offset_x = -100;
+        let offset_y = -100;
+        for(let i =0;i<25;i++){
+            this.target_ball_position.push((i % 5) * 60+offset_x);
+            this.target_ball_position.push(Math.floor(i / 5) * 60+offset_y);
+        }
+    },
+
     initMoveBallAndLine:function(){
         this.current_move_line_index = -1;
         this.current_move_ball_index_1 = -1;
         this.current_move_ball_index_2 = -1;
+        this.current_selected_line_index_1 = -1,
+        this.current_selected_line_index_2 = -1,
+
         this.current_target_position = cc.p(0, 0);
     },
 
@@ -349,8 +368,8 @@ var lad_mhy_globals = {
         this.current_model = this.GAME_MODEL.MODEL_1;
     },
 
-    getGoalConfigByLevel:function (level){
-        return this.game_goal_line_config[level-1];
+    getTargetConfigByLevel:function (level){
+        return this.game_target_line_config[level-1];
     },
 
     getInitConfigByLevel: function (level) {
@@ -388,10 +407,6 @@ var lad_mhy_globals = {
         let diff_x = parseInt(p2.x) - parseInt(p1.x);
         let diff_y = parseInt(p2.y) - parseInt(p1.y);
         return Math.sqrt(diff_x*diff_x+diff_y*diff_y);
-    },
-
-    getCrossPoints:function(point_a1,point_a2,point_b1,point_b2){
-        let m,n;
     },
 
     getLine:function(point_a,point_b){
