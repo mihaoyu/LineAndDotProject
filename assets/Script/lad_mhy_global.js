@@ -373,6 +373,7 @@ var lad_mhy_globals = {
     },
 
     getInitConfigByLevel: function (level) {
+        //return this.game_target_line_config[level - 1];
         return this.game_init_line_config[level - 1];
     },
 
@@ -478,6 +479,12 @@ var lad_mhy_globals = {
 
 
     },
+
+    checkIfUndefined:function(a){
+        let if_undefined = false;
+        typeof (a) == "undefined" ? if_undefined = true: if_undefined = false;
+        return if_undefined;
+    }
 };
 
 module.exports = lad_mhy_globals;
