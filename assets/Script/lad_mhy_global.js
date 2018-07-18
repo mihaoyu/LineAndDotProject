@@ -25,6 +25,7 @@ var lad_mhy_globals = {
     current_level:1,
     load_level_config:false,
     level_config:{},
+    point_array:[],
 
     current_move_line_index:-1,
     current_selected_line_index_1:-1,
@@ -373,7 +374,7 @@ var lad_mhy_globals = {
     },
 
     getInitConfigByLevel: function (level) {
-        //return this.game_target_line_config[level - 1];
+        return this.game_target_line_config[level - 1];
         return this.game_init_line_config[level - 1];
     },
 
@@ -387,104 +388,9 @@ var lad_mhy_globals = {
         return target_array; 
     },
 
-    getTwoPointsRotation: function (p1, p2) {
-        let diff_x = parseInt(p2.x) - parseInt(p1.x);
-        let diff_y = parseInt(p2.y) - parseInt(p1.y);
-        if (diff_x === 0) {
-            diff_x = 0.1;
-        }
-        let atan_angle = Math.atan(diff_y / diff_x) * 180 / Math.PI;
-        let rotation;
-        if (diff_x > 0) {
-            rotation = 90 - atan_angle;
-        } else if (diff_x < 0) {
-            rotation = 270 - atan_angle;
-        }
-
-        return rotation;
-    },
-
-    getTwoPointsDistance: function (p1, p2) {
-        let diff_x = parseInt(p2.x) - parseInt(p1.x);
-        let diff_y = parseInt(p2.y) - parseInt(p1.y);
-        return Math.sqrt(diff_x*diff_x+diff_y*diff_y);
-    },
-
     getLine:function(point_a,point_b){
         return [(point_b.y-point_b.y),(point_a.x-point_b.x),(point_b.x*point_a.y-point_a.x*point_b.y)];
     },
-
-    checkIfInArray:function(num,array){
-        let if_in = false;
-        for (let index = 0; index < array.length; index++) {
-            if(num === array[index]){
-                if_in = true;
-                break;
-            }            
-        }
-        return if_in;
-    },
-
-    checkIfACorrectBall:function(){
-        let if_correct = false;
-        return if_correct;
-    },
-
-    checkIfPassLevel:function(){
-        let if_pass = true;
-        return if_pass;
-    },
-
-    //全局功能
-    ifWXPlatom: function () {
-        return cc.sys.platform === cc.sys.WECHAT_GAME;
-    },
-
-    playMusic: function (music_name) {
-
-    },
-
-    //数据存储功能
-    localDataSet: function (name, value) {
-        console.log('===========================存入数据到本地',name,value)
-        cc.sys.localStorage.setItem(name, value);
-    },
-
-    localDataGet: function (name,defaultValue) {
-        var value = cc.sys.localStorage.getItem(name);
-        console.log("=======================读取本地数目",name,value)
-        if (value && typeof (value) != "undefined" && value != 0) {
-            return value;
-        }
-        if (defaultValue == null){
-            return 0;
-        }else{
-            return defaultValue;
-        }
-    },
-
-    uploadWXData: function (keyString, valueString) {
-        var kvDataList = new Array();
-        kvDataList.push({
-            key: keyString,
-            value: valueString+""
-        });
-
-        wx.setUserCloudStorage({
-            KVDataList: kvDataList
-        })
-    },
-
-    getLevelData:function(){
-
-
-    },
-
-    checkIfUndefined:function(a){
-        let if_undefined = false;
-        typeof (a) == "undefined" ? if_undefined = true: if_undefined = false;
-        return if_undefined;
-    }
 };
 
 module.exports = lad_mhy_globals;

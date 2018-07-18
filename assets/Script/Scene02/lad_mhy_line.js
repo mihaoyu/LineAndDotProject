@@ -32,6 +32,7 @@ cc.Class({
     start () {
         this.origin_x = 0;
         this.origin_y = 0;
+        this.opacity = 255;
         this.touchEventOn();
     },
 
@@ -62,15 +63,28 @@ cc.Class({
             return;
         }
 
-        //做个处理，如果已经有了current_line则忽略其他的移动行为
-        console.log('-=============line点击开始',this)
+        if (global.current_move_line_index!==-1) {
+            return;
+        }
 
-        let position = this.node.convertToNodeSpaceAR(event.getLocation());
-        let pos_x = position.x;
-        let pos_y = position.y;
+        //做个处理，如果已经有了current_line则忽略其他的移动行为
+        console.log('-=============line点击开始', this, event.getLocation())
+
+
+        //event.getLocation()
+        let position = this.node.convertTouchToNodeSpace(event);
+        //这个位置暂时不准确，需要修正
+        console.log('=======================', this.node.convertToNodeSpace(position))
+        console.log('=======================', this.node.convertToWorldSpace(position))
+        console.log('=======================', this.node.convertToNodeSpaceAR(position))
+        console.log('=======================', position.x+this.node.x,position.y+this.node.y)
+
+        let pos_x = position.x + this.node.x; //position.x;
+        let pos_y = position.y + this.node.y; //position.y;
 
         this.origin_x = this.node.x;
         this.origin_y = this.node.y;
+        this.node.opacity = 0;
 
         //传送给主场景，告知是哪个line开始动
         global.setMoveBallAndLine(this.line_index, this.ball_index_1, this.ball_index_2,pos_x,pos_y);
@@ -81,17 +95,30 @@ cc.Class({
         if (event.getTouches().length > 1) {
             return;
         }
+
+        if (global.current_move_line_index !== -1) {
+            return;
+        }
+
         var delta = event.touch.getDelta();
         this.node.x += delta.x;
         this.node.y += delta.y;
-
-        //this.node.opacity = 0;
     },
 
     touchEnd: function (event, touch) {
         if (event.getTouches().length > 1) {
             return;
         }
+
+        if (global.current_move_line_index !== -1) {
+            return;
+        }
+    },
+
+    initSelf:function(){
+        this.origin_x = 0;
+        this.origin_y = 0;
+        this.node.opacity = 255;
     },
 
     resetSelf:function(){
