@@ -109,6 +109,17 @@ var lad_mhy_utils = {
         return (p1.x*p2.y-p2.x*p1.y);
     },
 
+    checkIfTreePointsOnOneLine:function(a,b,c){
+        a.x = parseInt(a.x);
+        a.y = parseInt(a.y);
+        b.x = parseInt(b.x);
+        b.y = parseInt(b.y);
+        c.x = parseInt(c.x);
+        c.y = parseInt(c.y);
+
+        return (Math.abs(a.x * c.y + b.x * a.y + b.y * c.x - b.x * c.y - a.y * c.x - b.y * a.x) <= 0.01);
+    },
+
     getPassedNum:function(){
         //横线
         

@@ -64,6 +64,7 @@ cc.Class({
         }
 
         if (global.current_move_line_index!==-1) {
+            console.log("=====================global.current_move",global.current_move_line_index)
             return;
         }
 

@@ -8,7 +8,7 @@ var lad_mhy_globals = {
     BASIC_WIDTH:5,
     BASIC_HEIGHT:5,
     BASIC_BALLS_COUNT:25,
-    NEAR_DISTANCE:30,
+    NEAR_DISTANCE:50,
     BALL_DISTANCE:120,
     BASIC_BALL_RADIUS:0,
 
@@ -374,7 +374,7 @@ var lad_mhy_globals = {
     },
 
     getInitConfigByLevel: function (level) {
-        return this.game_target_line_config[level - 1];
+        //return this.game_target_line_config[level - 1];
         return this.game_init_line_config[level - 1];
     },
 
