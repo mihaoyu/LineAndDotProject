@@ -154,6 +154,7 @@ cc.Class({
     updateTargetLadLevel:function(){
         this.target_balls_nums = [];
         this.target_line_had = [];
+        this.had_got_lines_transfer = [];
         
         this.target_ball_config = global.makeStrToArray(global.getTargetConfigByLevel(global.current_level), ",");
 
@@ -172,13 +173,8 @@ cc.Class({
             index_1 = index_array[0] - 0;
             index_2 = index_array[1] - 0;
 
-            if (!utils.checkIfInArray(index_1, this.target_balls_nums)) {
-                this.target_balls_nums.push(index_1);
-            }
-
-            if (!utils.checkIfInArray(index_2, this.target_balls_nums)) {
-                this.target_balls_nums.push(index_2);
-            }
+            this.target_balls_nums[index_1] = true;
+            this.target_balls_nums[index_2] = true;
 
             //画线
             max = (index_1 > index_2) ? index_1 : index_2;
@@ -195,9 +191,23 @@ cc.Class({
 
             //测试用代码，专用来测试这个函数管不管用
             //部分有误 10,40,43,50
+            if (!utils.checkIfUndefined(this.had_got_lines_transfer[min])) {
+                this.had_got_lines_transfer[min] = [];
+            }
+
             let temp_array = utils.checkHowManyBallsBetweenTwoBalls(index_1,index_2);
             if(temp_array.length >0){
-                console.log(global.current_level,'====================', min, max, temp_array)
+                this.had_got_lines_transfer[index_1][temp_array[0]] = true;
+                for(let j = 0;j<temp_array.length;j++){
+                    this.target_balls_nums[temp_array[j]] = true;
+                    if (k !== temp_array.length - 1) {
+                        this.had_got_lines_transfer[temp_array[k + 1]][temp_array[k + 1]] = true;
+                    } else {
+                        this.had_got_lines_transfer[index_1][temp_array[temp_array.length - 1]] = true;
+                    }
+                }
+            }else{
+                this.had_got_lines_transfer[min].push(max);
             }
         }
     },
@@ -651,63 +661,102 @@ cc.Class({
     },
 
     checkIfPassLevel:function(){
-        //return false;
-
         let if_pass = false;
+
+        let index_1 = -1;
+        let index_2 = -1;
+        let temp_array = false;
         let sort_func = function (a, b) {
             return a - b;
         }
 
-        //判断球的数量是否相等，除了球的数量，还有就是线的数量是否相同，其实主要是判断线的数量和相应位置
-        console.log('====================判断比较',this.init_balls_nums,this.target_balls_nums)
+        let had_got_balls_nums = [];
 
+        for (let i = 0; i < this.current_line_had.length; i++) {
+            if (utils.checkIfUndefined(this.current_line_had[i])) {
+                for(let j = 0;j<this.current_line_had[i].length;j++){
+                    index_1 = i
+                    index_2 = this.current_line_had[i][j]
+                    temp_array = utils.checkHowManyBallsBetweenTwoBalls(index_1, index_2);
 
-        if (this.init_balls_nums.length === this.target_balls_nums.length) {
-            this.init_balls_nums.sort(sort_func);
-            this.target_balls_nums.sort(sort_func);
+                    if (!utils.checkIfInArray(index_1, had_got_balls_nums)) {
+                        had_got_balls_nums.push(index_1);
+                    }
 
-            console.log('================输出判断',this.init_balls_nums,this.target_balls_nums)
+                    if (!utils.checkIfInArray(index_2, had_got_balls_nums)) {
+                        had_got_balls_nums.push(index_2);
+                    }
 
-
-            for(let i = 0;i<this.init_balls_nums.length;i++){
-                if(this.init_balls_nums[i] === this.target_balls_nums[i]){
-                    if_pass = true;
-                }else{
-                    if_pass = false;
-                    break;
-                }
-            }
-
-            for(let i = 0;i<this.target_line_had.length;i++){
-                if (!utils.checkIfUndefined(this.target_line_had[i])) {
-                    if (utils.checkIfUndefined(this.current_line_had[i])){
-                        if_pass = false;
-                        break;
-                    }else{
-                        console.log('==========================来，比较一下',i, this.target_line_had[i], this.current_line_had[i])
-                        if(this.target_line_had[i].length === this.current_line_had[i].length){
-                            this.current_line_had[i].sort(sort_func);
-                            this.target_line_had[i].sort(sort_func);
-                            console.log('================排序完毕',this.current_line_had[i],this.target_line_had[i])
-
-                            for (let j = 0; j < this.target_line_had[i].length;j++){
-                                console.log('===============深层比较', this.target_line_had[i][j], this.current_line_had[i][j])
-                                if (this.target_line_had[i][j] === this.current_line_had[i][j]){
-                                    if_pass = true;
-                                }else{
-                                    if_pass = false;
-                                    break;
-                                }
-                            }
-                        }else{
-                            if_pass = false;
-                            break;
+                    for(let k = 0;k<temp_array.length;k++){
+                        if (!utils.checkIfInArray(temp_array[k], had_got_balls_nums)){
+                            had_got_balls_nums.push(temp_array[k]);
                         }
-
                     }
                 }
             }
-            console.log('==============',this.target_line_had,this.current_line_had)
+        }
+
+        //球数量不同，不通关
+        if(this.target_balls_nums.length !== had_got_balls_nums.length){
+            if_pass = false;
+            return if_pass;
+        }
+
+        //数量对了在进行线情况的比较
+
+        let had_got_lines_transfer = [];
+        for (let i = 0; i < this.current_line_had.length; i++) {
+            if (utils.checkIfUndefined(this.current_line_had[i])) {
+                for (let j = 0; j < this.current_line_had[i].length; j++) {
+                    index_1 = i
+                    index_2 = this.current_line_had[i][j]
+                    temp_array = utils.checkHowManyBallsBetweenTwoBalls(index_1, index_2);
+
+                    if(!utils.checkIfUndefined(had_got_lines_transfer[index_1])){
+                        had_got_lines_transfer[index_1] = [];
+                    }
+
+                    if(temp_array.length === 0){
+                        had_got_lines_transfer[index_1].push(index_2);
+                    }else{
+                        had_got_lines_transfer[index_1][temp_array[0]] = true;
+
+                        for (let k = 0; k < temp_array.length; k++) {
+                            if(k!==temp_array.length-1){
+                                had_got_lines_transfer[temp_array[k + 1]][temp_array[k + 1]] = true;
+                            }else{
+                                had_got_lines_transfer[index_1][temp_array[temp_array.length - 1]] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //比较线是否相同
+        for(let i = 0;i<this.target_lines_transfer.length;i++){
+            if (!utils.checkIfUndefined(this.target_lines_transfer[i])){
+                if (utils.checkIfUndefined(had_got_lines_transfer[i])){
+                    if_pass = false;
+                    return if_pass;
+                }else{
+                    if(this.target_lines_transfer[i].length !== had_got_lines_transfer[i]){
+                        if_pass = false;
+                        return if_pass;
+                    }else{
+                        had_got_lines_transfer[i].sort(sort_func);
+                        this.target_lines_transfer[i].sort(sort_func);
+                        for(let j = 0;j<this.target_lines_transfer.length;j++){
+                            if(this.target_lines_transfer[j] === had_got_lines_transfer[j]){
+                                if_pass = true;
+                            }else{
+                                if_pass = false;
+                                return if_pass;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return if_pass;

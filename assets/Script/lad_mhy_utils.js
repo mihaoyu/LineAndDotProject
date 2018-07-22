@@ -1,5 +1,7 @@
 var global = require("lad_mhy_global");
 var lad_mhy_utils = {
+    balls_between_indexes = [],
+
     getTwoPointsRotation: function (p1, p2) {
         let diff_x = parseInt(p2.x) - parseInt(p1.x);
         let diff_y = parseInt(p2.y) - parseInt(p1.y);
@@ -120,14 +122,6 @@ var lad_mhy_utils = {
         return (Math.abs(a.x * c.y + b.x * a.y + b.y * c.x - b.x * c.y - a.y * c.x - b.y * a.x) <= 0.01);
     },
 
-    getPassedNum:function(){
-        //横线
-        
-        //竖线
-
-        //斜线
-    },
-
     //共线共点向量是否统一方向
     checkIfSameDirection: function (same_point, p1, p2) {
         let if_same_direction = false;
@@ -143,8 +137,22 @@ var lad_mhy_utils = {
     checkHowManyBallsBetweenTwoBalls:function(ball_index_1,ball_index_2){
         let balls_array = -1;
 
+        max = (ball_index_1 > ball_index_2) ? ball_index_1 : ball_index_2;
+        min = (ball_index_1 > ball_index_2) ? ball_index_2 : ball_index_1;
+        
+        if(this.balls_between_indexes[min][max])
+        if (this.checkIfUndefined(this.balls_between_indexes[min])){
+            this.balls_between_indexes[min] = [];
+            this.balls_between_indexes[min][max] = [];
+        }else if(this.checkIfUndefined(this.balls_between_indexes[min][max])){
+            this.balls_between_indexes[min][max] = [];
+        }else{
+            return this.balls_between_indexes[min][max];
+        }
+
         let ball_1 = this.getRowAndColumnByBallIndex(ball_index_1);
         let ball_2 = this.getRowAndColumnByBallIndex(ball_index_2);
+
         let row_max = Math.max(ball_1[0],ball_2[0]);
         let row_min = Math.min(ball_1[0], ball_2[0]);
         let column_max = Math.max(ball_1[1], ball_2[1]);
@@ -155,6 +163,8 @@ var lad_mhy_utils = {
             for(let i = column_min+1;i<column_max;i++){
                 balls_array.push(i+row_max*5);
             }
+
+            this.balls_between_indexes[min][max] = balls_array;
             return balls_array;
         }
 
@@ -163,6 +173,8 @@ var lad_mhy_utils = {
             for(let i = row_min+1;i<row_max;i++){
                 balls_array.push(i*5+column_max);
             }
+
+            this.balls_between_indexes[min][max] = balls_array;
             return balls_array;
         }
 
@@ -181,7 +193,8 @@ var lad_mhy_utils = {
                 }
             }
         }
-
+        
+        this.balls_between_indexes[min][max] = balls_array;
         return balls_array;
     },
 
