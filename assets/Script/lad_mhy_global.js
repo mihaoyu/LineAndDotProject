@@ -11,6 +11,7 @@ var lad_mhy_globals = {
     NEAR_DISTANCE:50,
     BALL_DISTANCE:120,
     BASIC_BALL_RADIUS:0,
+    TARGET_BALL_INDEX:25,
 
     //游戏枚举
     GAME_MODEL: {

@@ -49,13 +49,13 @@ cc.Class({
     touchEventOn: function () {
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
-        //this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
     },
 
     touchEventOff: function () {
         this.node.off(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.node.off(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
-        //this.node.off(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        this.node.off(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
     },
 
     touchStart: function (event, touch) {
@@ -63,25 +63,20 @@ cc.Class({
             return;
         }
 
+        //可能需要再判断
         if (global.current_move_line_index!==-1) {
             console.log("=====================global.current_move",global.current_move_line_index)
             return;
         }
 
         //做个处理，如果已经有了current_line则忽略其他的移动行为
-        console.log('-=============line点击开始', this, event.getLocation())
+        console.log('-=============line点击开始', this,event)
 
-
-        //event.getLocation()
-        let position = this.node.convertTouchToNodeSpace(event);
-        //这个位置暂时不准确，需要修正
-        console.log('=======================', this.node.convertToNodeSpace(position))
-        console.log('=======================', this.node.convertToWorldSpace(position))
-        console.log('=======================', this.node.convertToNodeSpaceAR(position))
-        console.log('=======================', position.x+this.node.x,position.y+this.node.y)
-
-        let pos_x = position.x + this.node.x; //position.x;
-        let pos_y = position.y + this.node.y; //position.y;
+        let position = event.getLocation();
+        let pos_x = 0;
+        let pos_y = 0;
+        pos_x = position.x - cc.winSize.width/2;
+        pos_y = position.y - cc.winSize.height/2; 
 
         this.origin_x = this.node.x;
         this.origin_y = this.node.y;
@@ -97,13 +92,16 @@ cc.Class({
             return;
         }
 
-        if (global.current_move_line_index !== -1) {
+        if (global.current_move_line_index !== this.line_index) {
             return;
         }
 
         var delta = event.touch.getDelta();
         this.node.x += delta.x;
         this.node.y += delta.y;
+
+        global.current_event = event;
+        cc.game.emit("lad_line_move");
     },
 
     touchEnd: function (event, touch) {
@@ -111,9 +109,10 @@ cc.Class({
             return;
         }
 
-        if (global.current_move_line_index !== -1) {
+        if (global.current_move_line_index !== this.line_index) {
             return;
         }
+        cc.game.emit("lad_line_end");
     },
 
     initSelf:function(){

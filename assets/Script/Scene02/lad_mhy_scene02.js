@@ -1,6 +1,31 @@
+/*
+                  老天保佑
+                  永无bug 
+
+                   _ooOoo_ 
+                  o8888888o 
+                  88" . "88 
+                  (| -_- |) 
+                  O\  =  /O 
+               ____/`---'\____ 
+             .'  \\|     |//  `. 
+            /  \\|||  :  |||//  \ 
+           /  _||||| -:- |||||-  \ 
+           |   | \\\  -  /// |   | 
+           | \_|  ''\---/''  |   | 
+           \  .-\__  `-`  ___/-. / 
+         ___`. .'  /--.--\  `. . __ 
+      ."" '<  `.___\_<|>_/___.'  >'"". 
+     | | :  `- \`.;`\ _ /`;.`/ - ` : | | 
+     \  \ `-.   \_ __\ /__ _/   .-` /  / 
+======`-.____`-.___\_____/___.-`____.-'====== 
+                   `=---=' 
+
+
+*/
+
 var global = require("lad_mhy_global");
 var utils = require("lad_mhy_utils");
-
 
 cc.Class({
     extends: cc.Component,
@@ -44,8 +69,10 @@ cc.Class({
         this.target_balls_nums = [];
         this.target_lines = [];
 
+        //每个级别现存
         this.current_line_had = [];
         this.target_line_had = [];
+        this.record_array = [];
 
         global.setTargetBallPosition();
         global.current_level = 1;
@@ -80,9 +107,11 @@ cc.Class({
 
     onDestroy: function () {
         cc.game.off("lad_line_start", this.fingerStart, this);
+        cc.game.off("lad_line_move", this.touchMove, this);
+        cc.game.off("lad_line_end", this.touchEnd, this);
         //this.bg.off(cc.Node.EventType.TOUCH_MOVE, this.touchStart, this);
-        this.bg.off(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
-        this.bg.off(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        //this.bg.off(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
+        //this.bg.off(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
     },
 
     initVaribles:function(){
@@ -94,9 +123,11 @@ cc.Class({
 
     initGameOnEvents: function () {
         cc.game.on("lad_line_start", this.fingerStart, this);
+        cc.game.on("lad_line_move", this.touchMove, this);
+        cc.game.on("lad_line_end", this.touchEnd, this);
         //this.bg.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
-        this.bg.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
-        this.bg.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        //this.bg.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
+        //this.bg.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
     },
 
     createBasicBalls: function () {
@@ -154,7 +185,7 @@ cc.Class({
     updateTargetLadLevel:function(){
         this.target_balls_nums = [];
         this.target_line_had = [];
-        this.had_got_lines_transfer = [];
+        this.target_lines_transfer = [];
         
         this.target_ball_config = global.makeStrToArray(global.getTargetConfigByLevel(global.current_level), ",");
 
@@ -176,10 +207,13 @@ cc.Class({
             this.target_balls_nums[index_1] = true;
             this.target_balls_nums[index_2] = true;
 
-            //画线
+            this.drawTargetLine(index_1, index_2, i);
+
+            //max，min可能以后会发现不需要分的这么清楚
             max = (index_1 > index_2) ? index_1 : index_2;
             min = (index_1 > index_2) ? index_2 : index_1;
 
+            //可能会删除，暂时没有用
             if (utils.checkIfUndefined(this.target_line_had[min])){
                 this.target_line_had[min] = [];
                 this.target_line_had[min].push(max);
@@ -187,27 +221,32 @@ cc.Class({
                 this.target_line_had[min].push(max);
             }
 
-            this.drawTargetLine(index_1,index_2,i);
-
-            //测试用代码，专用来测试这个函数管不管用
             //部分有误 10,40,43,50
-            if (!utils.checkIfUndefined(this.had_got_lines_transfer[min])) {
-                this.had_got_lines_transfer[min] = [];
+            if (utils.checkIfUndefined(this.target_lines_transfer[min])) {
+                this.target_lines_transfer[min] = [];
             }
 
-            let temp_array = utils.checkHowManyBallsBetweenTwoBalls(index_1,index_2);
+            let temp_array = utils.checkHowManyBallsBetweenTwoBalls(min,max);
+
             if(temp_array.length >0){
-                this.had_got_lines_transfer[index_1][temp_array[0]] = true;
+                this.target_lines_transfer[min][temp_array[0]] = true;
                 for(let j = 0;j<temp_array.length;j++){
                     this.target_balls_nums[temp_array[j]] = true;
-                    if (k !== temp_array.length - 1) {
-                        this.had_got_lines_transfer[temp_array[k + 1]][temp_array[k + 1]] = true;
+
+                    if (j !== temp_array.length - 1) {
+                        if (utils.checkIfUndefined(this.target_lines_transfer[temp_array[j]])){
+                            this.target_lines_transfer[temp_array[j]] = [];
+                        }
+                        this.target_lines_transfer[temp_array[j]][temp_array[j + 1]] = true;
                     } else {
-                        this.had_got_lines_transfer[index_1][temp_array[temp_array.length - 1]] = true;
+                        if (utils.checkIfUndefined(this.target_lines_transfer[temp_array[temp_array.length - 1]])) {
+                            this.target_lines_transfer[temp_array[temp_array.length - 1]] = [];
+                        }
+                        this.target_lines_transfer[temp_array[temp_array.length - 1]][max] = true;
                     }
                 }
             }else{
-                this.had_got_lines_transfer[min].push(max);
+                this.target_lines_transfer[min][max] = true;
             }
         }
     },
@@ -287,10 +326,10 @@ cc.Class({
 
         let pos_x = global.current_target_position.x;
         let pos_y = global.current_target_position.y;
+
         if (this.target_ball === -1) {
-            this.target_ball = this.getBallNodeFromPool();
+            this.target_ball = this.getBallNodeByBallIndex(global.TARGET_BALL_INDEX);
             this.target_ball.scale = 0.6;
-            this.target_ball.parent = this.level_ball_layer;
         }
 
         this.target_ball.x = pos_x;
@@ -304,10 +343,8 @@ cc.Class({
         }
     },
 
-    touchMove:function(event,touch){
-        if (event.getTouches().length > 1)  {
-            return;
-        }
+    touchMove:function(event){
+        console.log('=-===========移动',utils.checkIfUndefined(global.current_move_ball_1),utils.checkIfUndefined(global.current_move_ball_2))
 
         if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1){
             return;
@@ -315,7 +352,7 @@ cc.Class({
 
         let pos_x = 0;
         let pos_y = 0;
-        let position = this.node.convertToNodeSpaceAR(event.getLocation());
+        let position = this.node.convertToNodeSpaceAR(global.current_event.getLocation());
         this.near_ball_index = this.checkIfNearOtherNodes(position.x,position.y);
 
         if(this.near_ball_index === -1){
@@ -337,6 +374,11 @@ cc.Class({
         //计算wrong_num
         let a = 0;
         this.wrong_num = 0;
+
+        //判断移动点是否和其中的一个点重合，如果重合，则返回
+        if (this.near_ball_index !== -1 && (this.near_ball_index === global.current_move_ball_index_1 || this.near_ball_index === global.current_move_ball_index_2)) {
+            return;
+        }
 
         //判断其他线和当前两条移动线的交点
         for (let i = 0;i < this.lines_array.length;i++){
@@ -384,10 +426,6 @@ cc.Class({
     },
 
     touchEnd:function(event){
-        if (event.getTouches().length > 1) {
-            return;
-        }
-
         if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1) return;
 
         //current_move_ball_1这个标记其实是用来标记是否移动了线，只有移动了线
@@ -400,10 +438,11 @@ cc.Class({
             this.wrong_tags_array[index].active = false;
         }
 
-        //没有到基础求所在的位置，则弹回回到初始状态
-        if(this.near_ball_index === -1){
+        //判断移动点是否和其中的一个点重合，如果重合，则返回
+        let a = this.near_ball_index === -1;
+        let b = this.near_ball_index === global.current_move_ball_index_1 || this.near_ball_index === global.current_move_ball_index_2;
+        if(a||b){
             this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').resetSelf();
-            this.target_ball.active = false;
             this.recycleSelectedLine();
             this.initMoveStatusParams();
             return;
@@ -413,14 +452,38 @@ cc.Class({
             //消除当前line
             let index_1 = this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').getBallsIndex()[0];
             let index_2 = this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').getBallsIndex()[1];
-            this.deleteCurrentLine(index_2, index_1);
+            this.deleteCurrentLine(index_2, index_1, global.current_move_line_index);
 
             this.addBall(this.near_ball_index);
-            let need_create = this.checkIfNeedToCreateNewLineAndBall(index_1, index_2, this.near_ball_index);
+            let c = this.checkIfNeedToCreateNewLineAndBall(index_1, index_2, this.near_ball_index);
             
-            need_create[0] ? 1 : this.setSelectedLineToNormalLine(this.selected_line_1, this.near_ball_index);
-            need_create[1] ? 1 : this.setSelectedLineToNormalLine(this.selected_line_2, this.near_ball_index);
+            let need_create = c[0];
             
+            //需要存的的东西：删掉的线，多出来的线，多出来的ball
+            let temp_array = {};
+            temp_array['deleted_lines'] = [index_2,index_1];
+            temp_array['added_balls'] = [this.near_ball_index];
+            temp_array['added_lines'] = c[1]; 
+
+            let d = -1;
+            let e = -1;
+            if (!need_create[0]) {
+                d = this.selected_line_1.getComponent('lad_mhy_line').getBallsIndex()[0];
+                e = this.selected_line_1.getComponent('lad_mhy_line').getLineIndex();
+                temp_array['added_lines'].push([d, this.near_ball_index, e]);
+                this.setSelectedLineToNormalLine(this.selected_line_1, this.near_ball_index);
+            }
+
+            if (!need_create[1]) {
+                d = this.selected_line_2.getComponent('lad_mhy_line').getBallsIndex()[0];
+                e = this.selected_line_2.getComponent('lad_mhy_line').getLineIndex();
+                temp_array['added_lines'].push([d, this.near_ball_index, e]);
+                this.setSelectedLineToNormalLine(this.selected_line_2, this.near_ball_index);
+            }
+
+            this.record_array.push(temp_array);
+            console.log('================当前操作步骤',this.record_array)
+
             this.recycleSelectedLine(need_create);
 
             //如果正确，判断是否过关，过关则显示过关效果，否则按下了按钮,添加线
@@ -443,18 +506,20 @@ cc.Class({
 
     checkIfNeedToCreateNewLineAndBall:function(index_1,index_2,index_3){
         let need = [false,false];
+        let add_lines = [];
+
         let max = index_1;
         let min = index_2;
         let operate_array = false;
         let max_temp = -1;
         let min_temp = -1;
 
-        let temp_array_1 = utils.checkHowManyBallsBetweenTwoBalls(max, this.near_ball_index);
-        let temp_array_2 = utils.checkHowManyBallsBetweenTwoBalls(min, this.near_ball_index);
+        let temp_array_1 = utils.checkHowManyBallsBetweenTwoBalls(max, index_3);
+        let temp_array_2 = utils.checkHowManyBallsBetweenTwoBalls(min, index_3);
 
         if(temp_array_1.length !== 0){
-            max_temp = min > index_3 ? min : index_3;
-            min_temp = min > index_3 ? index_3 : min;
+            max_temp = max > index_3 ? max : index_3;
+            min_temp = max > index_3 ? index_3 : max;
 
             //只会被已有点所分割
             if (temp_array_1.length != 0) {
@@ -465,20 +530,33 @@ cc.Class({
                     }
                 }
             }
-            console.log('=======================operate_array1',operate_array)
 
             //在min_temp index_3 max_temp中添加球，线
             if(operate_array.length === 1){
-                this.addLine(min_temp,operate_array[0]);
-                this.addLine(operate_array[0], max_temp);
+                //此代码可能以后没用
+               // this.addBall(operate_array[0]);
+                let a = this.addLine(min_temp, operate_array[0]);
+                let b = this.addLine(operate_array[0], max_temp);
+                add_lines.push([min_temp, operate_array[0],a]);
+                add_lines.push([operate_array[0], max_temp,b]);
+                
+                
+                
                 need[0] = true;
             }else if(operate_array.length > 1) {
-                this.addLine(min_temp,operate_array[0]);
+                //this.addBall(operate_array[i]);
+                let a = this.addLine(min_temp,operate_array[0]);
+                add_lines.push([min_temp, operate_array[0],a]);
+                
+                
+                
                 for(let i = 0;i<operate_array.length;i++){
                     if(i!==(operate_array.length-1)){
-                        this.addLine(operate_array[i],operate_array[i+1]);
+                        let a = this.addLine(operate_array[i],operate_array[i+1]);
+                        add_lines.push([operate_array[i], operate_array[i + 1],a]);
                     }else{
-                        this.addLine(operate_array[i],max_temp);
+                        let a = this.addLine(operate_array[i],max_temp);
+                        add_lines.push([operate_array[i], max_temp,a]);
                     }
                 }
                 need[0] = true;
@@ -486,8 +564,8 @@ cc.Class({
         }
 
         if (temp_array_2.length !== 0) {
-            max_temp = min>index_3?min:index_3;
-            min_temp = min>index_3?index_3:min;
+            max_temp = min > index_3 ? min : index_3; 
+            min_temp = min > index_3 ? index_3:min; 
 
             if (temp_array_2.length != 0) {
                 operate_array = [];
@@ -499,27 +577,40 @@ cc.Class({
             }
             console.log('=======================operate_array2', operate_array)
 
-            //在min_temp index_3 max_temp中添加球，线
             if (operate_array.length === 1) {
-                this.addBall(operate_array[0]);
-                this.addLine(min_temp, operate_array[0]);
-                this.addLine(operate_array[0], max_temp);
+                //this.addBall(operate_array[0]);
+
+                let a = this.addLine(min_temp, operate_array[0]);
+                let b = this.addLine(operate_array[0], max_temp);
+
+                add_lines.push([min_temp, operate_array[0],a]);
+                add_lines.push([operate_array[0], max_temp,b]);
+
+
+
                 need[1] = true;
             } else if (operate_array.length>1) {
-                this.addLine(min_temp, operate_array[0]);
+                let a = this.addLine(min_temp, operate_array[0]);
+                add_lines.push([min_temp, operate_array[0],a]);
+
                 for (let i = 0; i < operate_array.length; i++) {
-                    this.addBall(operate_array[i]);
+                    //this.addBall(operate_array[i]);
+
                     if (i !== (operate_array.length - 1)) {
-                        this.addLine(operate_array[i], operate_array[i + 1]);
+                        let a = this.addLine(operate_array[i], operate_array[i + 1]);
+                        add_lines.push([operate_array[i], operate_array[i + 1],a]);
                     } else {
-                        this.addLine(operate_array[i], max_temp);
+                        let b = this.addLine(operate_array[i], max_temp);
+                        add_lines.push([operate_array[i], max_temp,b]);
+
+
                     }
                 }
                 need[1] = true;
             }
         }
 
-        return need;
+        return [need,add_lines];
     },
 
     setSelectedLineToNormalLine:function(line_node,ball_index){
@@ -529,15 +620,24 @@ cc.Class({
         let max = (ball_index_1 > ball_index_2) ? ball_index_1 : ball_index_2;
         let min = (ball_index_1 > ball_index_2) ? ball_index_2 : ball_index_1;
         line_node.getComponent('lad_mhy_line').setLineIndex(line_index,max,min);
+
+        if (utils.checkIfUndefined(this.current_line_had[min])) {
+            this.current_line_had[min] = [];
+            this.current_line_had[min].push(max);
+        } else {
+            this.current_line_had[min].push(max);
+        }
     },
 
     initMoveStatusParams:function(){
-        //this.target_ball = -1;
+        this.target_ball = -1;
         this.wrong_num = 0;
         this.near_ball_index = -1;
         this.selected_line_1 = -1;
         this.selected_line_2 = -1;
         global.initMoveBallAndLine();
+        //target_ball可能以后不用回收
+        this.sendBallNodeToPool(global.TARGET_BALL_INDEX);
     },
 
     recycleSelectedLine:function(params){
@@ -672,25 +772,19 @@ cc.Class({
 
         let had_got_balls_nums = [];
 
+        console.log('=====================啊啊啊啊啊', this.current_line_had)
+
         for (let i = 0; i < this.current_line_had.length; i++) {
-            if (utils.checkIfUndefined(this.current_line_had[i])) {
+            if (!utils.checkIfUndefined(this.current_line_had[i])) {
                 for(let j = 0;j<this.current_line_had[i].length;j++){
-                    index_1 = i
-                    index_2 = this.current_line_had[i][j]
+                    index_1 = i;
+                    index_2 = this.current_line_had[i][j];
+                    had_got_balls_nums[index_1] = true;
+                    had_got_balls_nums[index_2] = true;
                     temp_array = utils.checkHowManyBallsBetweenTwoBalls(index_1, index_2);
-
-                    if (!utils.checkIfInArray(index_1, had_got_balls_nums)) {
-                        had_got_balls_nums.push(index_1);
-                    }
-
-                    if (!utils.checkIfInArray(index_2, had_got_balls_nums)) {
-                        had_got_balls_nums.push(index_2);
-                    }
-
+                        
                     for(let k = 0;k<temp_array.length;k++){
-                        if (!utils.checkIfInArray(temp_array[k], had_got_balls_nums)){
-                            had_got_balls_nums.push(temp_array[k]);
-                        }
+                        had_got_balls_nums[temp_array[k]] = true;
                     }
                 }
             }
@@ -699,6 +793,7 @@ cc.Class({
         //球数量不同，不通关
         if(this.target_balls_nums.length !== had_got_balls_nums.length){
             if_pass = false;
+            console.log('=======================球数量不同，不通关', this.target_balls_nums, had_got_balls_nums)
             return if_pass;
         }
 
@@ -706,32 +801,42 @@ cc.Class({
 
         let had_got_lines_transfer = [];
         for (let i = 0; i < this.current_line_had.length; i++) {
-            if (utils.checkIfUndefined(this.current_line_had[i])) {
+            if (!utils.checkIfUndefined(this.current_line_had[i])) {
                 for (let j = 0; j < this.current_line_had[i].length; j++) {
                     index_1 = i
                     index_2 = this.current_line_had[i][j]
                     temp_array = utils.checkHowManyBallsBetweenTwoBalls(index_1, index_2);
 
-                    if(!utils.checkIfUndefined(had_got_lines_transfer[index_1])){
+                    if(utils.checkIfUndefined(had_got_lines_transfer[index_1])){
                         had_got_lines_transfer[index_1] = [];
                     }
 
+                    //这边需要重点关注
+
                     if(temp_array.length === 0){
-                        had_got_lines_transfer[index_1].push(index_2);
+                        had_got_lines_transfer[index_1][index_2] = true;
                     }else{
                         had_got_lines_transfer[index_1][temp_array[0]] = true;
 
                         for (let k = 0; k < temp_array.length; k++) {
                             if(k!==temp_array.length-1){
-                                had_got_lines_transfer[temp_array[k + 1]][temp_array[k + 1]] = true;
+                                if (utils.checkIfUndefined(had_got_lines_transfer[temp_array[k]])) {
+                                    had_got_lines_transfer[temp_array[k]] = [];
+                                }
+                                had_got_lines_transfer[temp_array[k]][temp_array[k + 1]] = true;
                             }else{
-                                had_got_lines_transfer[index_1][temp_array[temp_array.length - 1]] = true;
+                                if (utils.checkIfUndefined(had_got_lines_transfer[temp_array[temp_array.length - 1]])) {
+                                    had_got_lines_transfer[temp_array[temp_array.length - 1]] = [];
+                                }
+                                had_got_lines_transfer[temp_array[temp_array.length - 1]][index_2] = true;
                             }
                         }
                     }
                 }
             }
         }
+
+        console.log('==================比较一下线', this.target_lines_transfer, had_got_lines_transfer)
 
         //比较线是否相同
         for(let i = 0;i<this.target_lines_transfer.length;i++){
@@ -740,14 +845,12 @@ cc.Class({
                     if_pass = false;
                     return if_pass;
                 }else{
-                    if(this.target_lines_transfer[i].length !== had_got_lines_transfer[i]){
+                    if(this.target_lines_transfer[i].length !== had_got_lines_transfer[i].length){
                         if_pass = false;
                         return if_pass;
                     }else{
-                        had_got_lines_transfer[i].sort(sort_func);
-                        this.target_lines_transfer[i].sort(sort_func);
                         for(let j = 0;j<this.target_lines_transfer.length;j++){
-                            if(this.target_lines_transfer[j] === had_got_lines_transfer[j]){
+                            if(this.target_lines_transfer[i][j] === had_got_lines_transfer[i][j]){
                                 if_pass = true;
                             }else{
                                 if_pass = false;
@@ -767,8 +870,11 @@ cc.Class({
         //a = cross_point 
         //p,m: 固定线，移动线
         //y = ax+b
-
         let a = -1;
+
+        if(utils.checkIfUndefined(p)){
+            return a;
+        }
 
         if (p.opacity === 0) {
             return a;
@@ -861,18 +967,14 @@ cc.Class({
         return true;
     },
 
-    //拿到现在通过的所有点，判断了是否过线，待优化啊
-    getAllNodePass:function(){
-
-    },
-
     addLine: function (min, max, if_random) {
+        console.log('======================每次添加后1',min, max)
         let line_index = this.getLineNode();
         let line_node = this.lines_array[line_index];
         let start_ball = -1;
         let end_ball = -1;
-        let start_index = parseInt(Math.random() * 2);
 
+         let start_index = parseInt(Math.random() * 2);
         if(utils.checkIfUndefined(if_random)){
             //以后添加动画用到的
             if (start_index === 1) {
@@ -887,6 +989,8 @@ cc.Class({
             end_ball = this.init_balls_array[max];
         }
 
+        console.log('======================每次添加后2', this.current_line_had[min], min,max)
+
         this.setNormalLineInfo(line_node, start_ball, end_ball);
         line_node.getComponent('lad_mhy_line').setLineIndex(line_index, min, max);
 
@@ -896,6 +1000,8 @@ cc.Class({
         } else {
             this.current_line_had[min].push(max);
         }
+
+        return line_index;
     },
 
     addBall:function(ball_index){
@@ -908,8 +1014,31 @@ cc.Class({
         }
     },
 
+    deleteBall:function(ball_index,if_need_action){
+        //预留删除动画
+        let index = -1;
+        this.sendBallNodeToPool(ball_index);
+
+        console.log('==============删除球之前',this.init_balls_nums)
+
+        for (let i = 0; i < this.init_balls_nums.length; i++) {
+            if (this.init_balls_nums[i] === ball_index) {
+                index = i;
+                break;
+            }
+        }
+
+        if(index !== -1){
+            this.init_balls_nums.splice(index, 1);
+        }else{
+            console.log('============没找到', ball_index)
+        }
+                console.log('==============删除球之后', this.init_balls_nums)
+    },
+
     //删除完成线
-    deleteCurrentLine: function (min, max) {
+    deleteCurrentLine: function (min, max, line_index) {
+        console.log('===========================删除线之前',min,max,line_index,this.lines_array, this.current_line_had)
         if (utils.checkIfUndefined(this.current_line_had[min])) {
             return;
         } else {
@@ -922,6 +1051,10 @@ cc.Class({
             }
             this.current_line_had[min].splice(index,1);
         }
+
+        this.sendLineNodeToPool(this.lines_array[line_index]);
+        this.lines_array[line_index] = undefined;
+        console.log('===========================删除线之后',this.current_line_had)
     },
 
     setEndBallNode:function(ball_index){},
@@ -980,6 +1113,7 @@ cc.Class({
 
     //查看内存是否泄漏
     checkXieTMDLou:function(){
+        console.log('===============================,this.init_ball_array', this.init_balls_array, this.ball_storge_array.length,this.target_ball)
         console.log('===============================,this.ball_storge_array',this.ball_storge_array,this.ball_storge_array.length)
         console.log('===============================,this.line_storge_array', this.line_storge_array,this.line_storge_array.length)
         console.log('===============================,this.lines_array', this.lines_array,this.lines_array.length)
@@ -992,6 +1126,7 @@ cc.Class({
         global.current_level < 1 ? global.current_level = 1:1;
         this.updateCurrentLadLevel();
         this.updateTargetLadLevel();
+        this.record_array = [];
     },
 
     //下一关
@@ -999,84 +1134,122 @@ cc.Class({
         global.current_level = global.current_level+1;
         this.updateCurrentLadLevel();
         this.updateTargetLadLevel();
+        this.record_array = [];
+    },
+
+    //反悔
+    regretOperate:function(){
+        //需要存的的东西：删掉的线，多出来的线，多出来的ball
+        if(this.record_array.length === 0){
+            console.log('================不存在反悔的步骤了')
+            return;
+        }
+
+        let regret_array = this.record_array.pop();
+
+        console.log('===================我现在是反悔操作',this.record_array,'====',regret_array)
+
+        let deleted_lines = regret_array["deleted_lines"];
+        let added_balls = regret_array["added_balls"];
+        let added_lines = regret_array["added_lines"];
+
+        console.log('======================aaaa', deleted_lines, added_balls, added_lines)
+
+            //这边添加完线之后线要线上下动的动画
+            //删了的要加上
+        this.addLine(deleted_lines[0], deleted_lines[1]);
+
+        for (let i = 0; i < added_balls.length; i++) {
+            this.deleteBall(added_balls[i]);
+        }
+
+        for (let i = 0; i < added_lines.length; i++) {
+            this.deleteCurrentLine(added_lines[i][0], added_lines[i][1], added_lines[i][2]);
+        }
+    },
+
+    //重来
+    retryOperate:function(){
+        this.updateCurrentLadLevel();
+        this.updateTargetLadLevel();
+        this.record_array = [];
     },
 
     /////////////////////////////////////////对象池操作
-        getBallNodeByBallIndex: function (ball_index) {
-            let ball_node = this.init_balls_array[ball_index];
-            if (utils.checkIfUndefined(ball_node)) {
-                //console.log('==================这里记录了我创建的次数')
-                ball_node = cc.instantiate(this.ball_prefab);
-                ball_node.parent = this.level_ball_layer;
-                ball_node.scale = 0.6;
-                ball_node.getComponent(cc.Sprite).SpriteFrame = this.ball_red;
-                this.init_balls_array[ball_index] = ball_node;
-            }
-            ball_node.active = true;
-            return this.init_balls_array[ball_index];
-        },
+    getBallNodeByBallIndex: function (ball_index) {
+        let ball_node = this.init_balls_array[ball_index];
+        if (utils.checkIfUndefined(ball_node)) {
+            ball_node = this.getBallNodeFromPool();
+            ball_node.parent = this.level_ball_layer;
+            ball_node.scale = 0.6;
+            ball_node.getComponent(cc.Sprite).SpriteFrame = this.ball_red;
+            this.init_balls_array[ball_index] = ball_node;
+        }
+        ball_node.active = true;
+        return this.init_balls_array[ball_index];
+    },
 
-        getLineNode: function () {
-            let line_node;
-            let line_index = -1;
+    getLineNode: function () {
+        let line_node;
+        let line_index = -1;
 
-            for (let i = 0; i < this.lines_array.length; i++) {
-                if (utils.checkIfUndefined(this.lines_array[i])) {
-                    line_node = this.getLineNodeFromPool();
-                    line_node.parent = this.level_line_layer;
-                    line_index = i;
-                    line_node.getComponent('lad_mhy_line').initSelf();
-                    this.lines_array[i] = line_node;
-                    break;
-                }
-            }
-
-            if (utils.checkIfUndefined(line_node)) {
+        for (let i = 0; i < this.lines_array.length; i++) {
+            if (utils.checkIfUndefined(this.lines_array[i])) {
                 line_node = this.getLineNodeFromPool();
-                this.lines_array.push(line_node);
                 line_node.parent = this.level_line_layer;
+                line_index = i;
                 line_node.getComponent('lad_mhy_line').initSelf();
-                line_index = this.lines_array.length - 1;
+                this.lines_array[i] = line_node;
+                break;
             }
-            line_node.active = true;
-            return line_index;
-        },
+        }
 
-        getLineNodeFromPool: function () {
-            if (this.line_storge_array.length === 0) {
-                this.line_storge_array.push(cc.instantiate(this.line_prefab));
-                this.line_storge_array.push(cc.instantiate(this.line_prefab));
+        if (utils.checkIfUndefined(line_node)) {
+            line_node = this.getLineNodeFromPool();
+            this.lines_array.push(line_node);
+            line_node.parent = this.level_line_layer;
+            line_node.getComponent('lad_mhy_line').initSelf();
+            line_index = this.lines_array.length - 1;
+        }
+        line_node.active = true;
+        return line_index;
+    },
+
+    clearAllLineNode: function () {
+        for (let i = 0; i < this.lines_array.length; i++) {
+            if (!utils.checkIfUndefined(this.lines_array[i])) {
+                this.sendLineNodeToPool(this.lines_array[i]);
+                this.lines_array[i] = undefined;
             }
-            return this.line_storge_array.pop();
-        },
+        }
+    },
 
-        clearAllLineNode: function () {
-            for (let i = 0; i < this.lines_array.length; i++) {
-                if (!utils.checkIfUndefined(this.lines_array[i])) {
-                    this.sendLineNodeToPool(this.lines_array[i]);
-                    this.lines_array[i] = undefined;
-                }
-            }
-        },
+    getBallNodeFromPool: function () {
+        if (this.ball_storge_array.length === 0) {
+            this.ball_storge_array.push(cc.instantiate(this.ball_prefab));
+            this.ball_storge_array.push(cc.instantiate(this.ball_prefab));
+        }
+        return this.ball_storge_array.pop();
+    },
 
-        sendLineNodeToPool: function (node) {
-            //console.log('==============回收了node',node)
-            node.active = false;
-            this.line_storge_array.push(node);
-        },
+    sendLineNodeToPool: function (node) {
+        node.active = false;
+        this.line_storge_array.push(node);
+    },
 
-        getBallNodeFromPool: function () {
-            if (this.ball_storge_array.length === 0) {
-                this.ball_storge_array.push(cc.instantiate(this.ball_prefab));
-                this.ball_storge_array.push(cc.instantiate(this.ball_prefab));
-            }
-            return this.ball_storge_array.pop();
-        },
+    sendBallNodeToPool: function (ball_index) {
+        this.init_balls_array[ball_index].active = false;
+        this.ball_storge_array.push(this.init_balls_array[ball_index]);
+        this.init_balls_array[ball_index] = undefined;
+    },
 
-        sendBallNodeToPool: function (node) {
-            node.active = false;
-            node.removeFromParent();
-            this.ball_storge_array.push(node);
-        },
+    getLineNodeFromPool: function () {
+        if (this.line_storge_array.length === 0) {
+            this.line_storge_array.push(cc.instantiate(this.line_prefab));
+            this.line_storge_array.push(cc.instantiate(this.line_prefab));
+        }
+        return this.line_storge_array.pop();
+    },
+
     /////////////////////////////////////////对象池操作
 });

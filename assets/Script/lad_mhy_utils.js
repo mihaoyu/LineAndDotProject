@@ -1,6 +1,6 @@
 var global = require("lad_mhy_global");
 var lad_mhy_utils = {
-    balls_between_indexes = [],
+    balls_between_indexes:[],
 
     getTwoPointsRotation: function (p1, p2) {
         let diff_x = parseInt(p2.x) - parseInt(p1.x);
@@ -41,13 +41,13 @@ var lad_mhy_utils = {
     },
 
     localDataSet: function (name, value) {
-        //console.log('===========================存入数据到本地',name,value)
+        console.log('===========================存入数据到本地',name,value)
         cc.sys.localStorage.setItem(name, value);
     },
 
     localDataGet: function (name,defaultValue) {
         var value = cc.sys.localStorage.getItem(name);
-        //console.log("=======================读取本地数目",name,value)
+        console.log("=======================读取本地数目",name,value)
         if (value && typeof (value) != "undefined" && value != 0) {
             return value;
         }
@@ -78,29 +78,6 @@ var lad_mhy_utils = {
 
     checkIfEqual:function(a,b){
         return (Math.abs(a-b)<0.01);
-    },
-
-    checkIfPointAtLine:function(line_p1,line_p2,p3){
-        let in_line = false;
-        let distance = 0.01;
-        line_p1.x = parseInt(line_p1.x);
-        line_p1.y = parseInt(line_p1.y);
-
-        line_p2.x = parseInt(line_p2.x);
-        line_p2.y = parseInt(line_p2.y);
-
-        p3.x = parseInt(p3.x);
-        p3.y = parseInt(p3.y);
-
-        //共线+在所围成的平行四边形中
-        if (this.getCrossProduct(this.getPointMinus(p3, line_p1), this.getPointMinus(p3, line_p2)) < distance){
-            if (Math.min(line_p1.x, line_p2.x) - distance <= p3.x && p3.x - distance <= Math.max(line_p1.x, line_p2.x)) {
-                if (Math.min(line_p1.y, line_p2.y) - distance <= p3.y && p3.y - distance <= Math.max(line_p1.y, line_p2.y)) {
-                    in_line = true;
-                }
-            }
-        }
-        return in_line;
     },
 
     getPointMinus:function(p1,p2){
@@ -135,18 +112,21 @@ var lad_mhy_utils = {
 
     //查看当前两点之间存在多少个点
     checkHowManyBallsBetweenTwoBalls:function(ball_index_1,ball_index_2){
+        //console.log('=====================查询的内容',ball_index_1,ball_index_2)
+
         let balls_array = -1;
+        let max = -1;
+        let min = -1;
 
         max = (ball_index_1 > ball_index_2) ? ball_index_1 : ball_index_2;
         min = (ball_index_1 > ball_index_2) ? ball_index_2 : ball_index_1;
         
-        if(this.balls_between_indexes[min][max])
-        if (this.checkIfUndefined(this.balls_between_indexes[min])){
+        if (this.checkIfUndefined(this.balls_between_indexes[min])) {
             this.balls_between_indexes[min] = [];
-            this.balls_between_indexes[min][max] = [];
-        }else if(this.checkIfUndefined(this.balls_between_indexes[min][max])){
-            this.balls_between_indexes[min][max] = [];
-        }else{
+            this.balls_between_indexes[min][max] = false;
+        }
+
+        if (this.balls_between_indexes[min][max]){
             return this.balls_between_indexes[min][max];
         }
 
@@ -178,8 +158,8 @@ var lad_mhy_utils = {
             return balls_array;
         }
 
-        let ball_1_point = global.point_array[ball_index_1];
-        let ball_2_point = global.point_array[ball_index_2];
+        let ball_1_point = this.getVisualPointByBallIndex(ball_index_1);
+        let ball_2_point = this.getVisualPointByBallIndex(ball_index_2);
         let ball_index = 0;
         let ball_point = 0;
 
@@ -187,8 +167,8 @@ var lad_mhy_utils = {
         for(let i = row_min+1;i<row_max;i++){
             for(let j = column_min+1;j<column_max;j++){
                 ball_index = i*5+j;
-                ball_point = global.point_array[ball_index];
-                if (this.checkIfPointAtLine(ball_1_point, ball_2_point, ball_point)){
+                ball_point = this.getVisualPointByBallIndex(ball_index);
+                if (this.checkIfTreePointsOnOneLine(ball_1_point, ball_2_point, ball_point)) {
                     balls_array.push(ball_index);
                 }
             }
@@ -200,6 +180,17 @@ var lad_mhy_utils = {
 
     getRowAndColumnByBallIndex: function (ball_index) {
         return [Math. floor(ball_index/5),ball_index%5];
+    },
+
+    //拿到虚拟坐标点
+    getVisualPointByBallIndex:function(ball_index){
+        //中间第十二个球，3,3为原点
+        let pos_x = 0;
+        let pos_y = 0;
+        let ball_info = this.getRowAndColumnByBallIndex(ball_index);
+        pos_x = ball_info[0] - 3;
+        pos_y = ball_info[1] - 3;
+        return cc.p(pos_x,pos_y);
     },
 };
 
