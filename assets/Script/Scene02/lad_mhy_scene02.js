@@ -45,6 +45,8 @@ cc.Class({
         level_line_layer:cc.Node,
         level_ball_layer:cc.Node,
         level_wrong_tags_layer:cc.Node,
+
+        level_label:cc.Label,
     },
 
     onLoad: function () {
@@ -137,8 +139,9 @@ cc.Class({
         this.basic_balls_array = [];
         global.point_array = [];
         for (let i = 0; i < global.BASIC_BALLS_COUNT; i++) {
-            var ball_node = cc.instantiate(this.ball_prefab);
+            var ball_node = cc.instantiate(this.ball_prefab); // i + "," +
             ball_node.getChildByName('num').getComponent(cc.Label).string = i;
+            //parseInt(this.offset_x + (i % global.BASIC_WIDTH) * global.BALL_DISTANCE) + "," + parseInt(this.offset_y + Math.floor(i / global.BASIC_HEIGHT) * global.BALL_DISTANCE);
             ball_node.scale = 0.6;
             ball_node.parent = this.level_ball_layer;
             ball_node.x = this.offset_x + (i % global.BASIC_WIDTH) * global.BALL_DISTANCE;
@@ -150,6 +153,9 @@ cc.Class({
     },
 
     updateCurrentLadLevel: function () {
+        this.level_label.string = "当前等级：" + global.current_level;
+
+
         this.initBallsAndLinesShowStatus();
         //后面再去考虑优化,这边数组分配有点问题
 
@@ -344,8 +350,6 @@ cc.Class({
     },
 
     touchMove:function(event){
-        console.log('=-===========移动',utils.checkIfUndefined(global.current_move_ball_1),utils.checkIfUndefined(global.current_move_ball_2))
-
         if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1){
             return;
         }  
@@ -354,6 +358,8 @@ cc.Class({
         let pos_y = 0;
         let position = this.node.convertToNodeSpaceAR(global.current_event.getLocation());
         this.near_ball_index = this.checkIfNearOtherNodes(position.x,position.y);
+
+        console.log('===============是否有nearballindex',this.near_ball_index)
 
         if(this.near_ball_index === -1){
             pos_x = position.x;
@@ -675,6 +681,8 @@ cc.Class({
             pos_x > this.basic_balls_array[i].x ? in_column = i: 1;
         }
 
+        console.log('===================aaaa',in_row,in_column)
+
         if (in_row === -1 && in_column === -1) {
             if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[0])) {
                 return 0;
@@ -692,7 +700,7 @@ cc.Class({
         //这里没有判断in_column，多判断了两次待后面优化
         if(in_row === 4){
             let ball_index = 0;
-            for(let i =0;i<2;i++){
+            for(let i = 0;i < 5;i++){
                 ball_index = i + 20;
                 if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
                     return ball_index;
@@ -704,7 +712,7 @@ cc.Class({
         //这里没有判断in_row，多判断了两次待后面优化
         if(in_column === 4){
             let ball_index = 0;            
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 5; i++) {
                 ball_index = (i+1)*5-1;
                 if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
                     return ball_index;
@@ -716,8 +724,8 @@ cc.Class({
         //这里没有判断in_column，多判断了两次待后面优化
         if (in_row === -1) {
             let ball_index = 0;
-            for (let i = 0; i < 4; i++) {
-                ball_index = i + in_column;
+            for (let i = 0; i < 5; i++) {
+                ball_index = i;
                 if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
                     return ball_index;
                 }
@@ -728,7 +736,7 @@ cc.Class({
         //这里没有判断in_row，多判断了两次待后面优化
         if (in_column === -1) {
             let ball_index = 0;
-            for (let i = 0; i < 2; i++) {
+            for (let i = 0; i < 5; i++) {
                 ball_index = i * 5;
                 if (this.checkIfNear(pos_x, pos_y, this.basic_balls_array[ball_index])) {
                     return ball_index;
@@ -741,8 +749,8 @@ cc.Class({
         let ball_index = 0;
         for(let i = 0;i<4;i++){
             ball_index = temp_table[i];
-            let juli1 = Math.abs(this.basic_balls_array[ball_index].x - pos_x)
-            let juli2 = Math.abs(this.basic_balls_array[ball_index].y - pos_y)
+            //let juli1 = Math.abs(this.basic_balls_array[ball_index].x - pos_x)
+            //let juli2 = Math.abs(this.basic_balls_array[ball_index].y - pos_y)
             if(this.checkIfNear(pos_x,pos_y,this.basic_balls_array[ball_index])){
                 return ball_index;
             }
@@ -752,7 +760,10 @@ cc.Class({
 
     checkIfNear:function(pos_x,pos_y,point){
         let if_near = false;
-        if ((Math.abs(pos_x - point.x) < global.NEAR_DISTANCE) && (Math.abs(pos_y - point.y) < global.NEAR_DISTANCE)){if_near = true}
+        let v1 = cc.v2(parseInt(pos_x), parseInt(pos_y));
+        let v2 = cc.v2(parseInt(point.x), parseInt(point.y));
+        console.log('==============距离',v1,v2,cc.pDistance(v1, v2))
+        if_near = cc.pDistance(v1, v2)<global.NEAR_DISTANCE ? true: false;
         return if_near;
     },
 
@@ -1037,7 +1048,9 @@ cc.Class({
     },
 
     //删除完成线
-    deleteCurrentLine: function (min, max, line_index) {
+    deleteCurrentLine: function (a, b, line_index) {
+        let min = a>b?b:a;
+        let max = a<b?b:a;
         console.log('===========================删除线之前',min,max,line_index,this.lines_array, this.current_line_had)
         if (utils.checkIfUndefined(this.current_line_had[min])) {
             return;

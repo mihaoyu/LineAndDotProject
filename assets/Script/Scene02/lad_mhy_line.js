@@ -30,6 +30,7 @@ cc.Class({
     },
 
     start () {
+        this._event_id = -1;
         this.origin_x = 0;
         this.origin_y = 0;
         this.opacity = 255;
@@ -59,8 +60,14 @@ cc.Class({
     },
 
     touchStart: function (event, touch) {
-        if (event.getTouches().length > 1) {
-            return;
+        console.log('==================eventaaaa', event, touch, event.getTouches(), event.getID());
+
+        if (this._event_id === -1) {
+            this._event_id = event.getID();
+        } else {
+            if (this._event_id != event.getID()) {
+                return;
+            }
         }
 
         //可能需要再判断
@@ -88,7 +95,7 @@ cc.Class({
     },
 
     touchMove: function (event, touch) {
-        if (event.getTouches().length > 1) {
+        if (this._event_id != event.getID()) {
             return;
         }
 
@@ -105,7 +112,7 @@ cc.Class({
     },
 
     touchEnd: function (event, touch) {
-        if (event.getTouches().length > 1) {
+        if (this._event_id != event.getID()) {
             return;
         }
 
@@ -113,6 +120,7 @@ cc.Class({
             return;
         }
         cc.game.emit("lad_line_end");
+        this._event_id = -1;
     },
 
     initSelf:function(){
