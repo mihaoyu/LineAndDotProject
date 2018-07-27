@@ -9,8 +9,8 @@ var lad_mhy_globals = {
     BASIC_HEIGHT:5,
     BASIC_BALLS_COUNT:25,
     NEAR_DISTANCE:40,
-    BALL_DISTANCE:120,
-    BASIC_BALL_RADIUS:0,
+    BALL_DISTANCE:113,
+    BASIC_BALL_RADIUS:20,
     TARGET_BALL_INDEX:25,
 
     //游戏枚举
@@ -21,12 +21,17 @@ var lad_mhy_globals = {
     },
 
     //游戏逻辑用变量
-    if_old_pig:false,//测试模式
     current_model:1,
+
+    current_ball_color_index:2,
     current_level:1,
+    last_open_level:1,
+    select_level:-1,
+
     load_level_config:false,
     level_config:{},
     point_array:[],
+    target_ball_position:-1,
 
     current_move_line_index:-1,
     current_selected_line_index_1:-1,
@@ -123,6 +128,9 @@ var lad_mhy_globals = {
     ],
 
     game_target_line_config:[
+        //测试
+        //"0_4,0_20,20_24,4_24",
+
         "2_10,2_14,10_22,22_14",
         "6_10,12_6,10_16,16_12,12_8,14_8,12_18,14_18",
         "7_6,16_22,18_8,16_6,7_8,18_22",
@@ -292,7 +300,13 @@ var lad_mhy_globals = {
         "11_13_0,11_0_5,11_5_10,11_10_15,11_15_20,11_20_21,11_21_15,11_15_16,11_16_10,13_0_11,0_11_6,11_6_5,13_11_4,11_4_8,13_4_9,13_9_14,13_14_18,14_18_19,18_19_23,19_23_24,18_23_19,13_18_14,11_8_13,8_13_9,11_13_6,13_6_8,11_6_12,11_12_16,6_12_11,13_8_12,13_12_18,8_12_13,6_8_12,12_16_17,16_17_21,12_17_16,12_18_17,18_17_23,12_17_18",
     ],
 
-    target_ball_position:[],
+    LINE_COLOR:[
+        "#6699BB",
+        "#FF7788",
+        "#77CCCC",
+        "#EE9966",
+        "#AA88CC",
+    ],
 
     //闪光shader
     FLUXAY_VERT : `
@@ -337,13 +351,19 @@ var lad_mhy_globals = {
     `,
     
     //生成伪目标坐标
-    setTargetBallPosition:function(){
+    setTargetBallPosition:function(width,height){
         //这个以后还要变，再说
-        let offset_x = -100;
-        let offset_y = -100;
+        if(this.target_ball_position === -1){
+            this.target_ball_position = [];
+        }else{
+            return;
+        }
+
+        let offset_x = width/2-19;
+        let offset_y = height/2-18; 
         for(let i =0;i<25;i++){
-            this.target_ball_position.push((i % 5) * 60+offset_x);
-            this.target_ball_position.push(Math.floor(i / 5) * 60+offset_y);
+            this.target_ball_position.push((i % 5) * 50 - offset_x);
+            this.target_ball_position.push(Math.floor(i / 5) * 50 - offset_y);
         }
     },
 
@@ -391,6 +411,10 @@ var lad_mhy_globals = {
 
     getLine:function(point_a,point_b){
         return [(point_b.y-point_b.y),(point_a.x-point_b.x),(point_b.x*point_a.y-point_a.x*point_b.y)];
+    },
+
+    getLineColor:function(ball_color_index){
+        return this.LINE_COLOR[ball_color_index-1];
     },
 };
 

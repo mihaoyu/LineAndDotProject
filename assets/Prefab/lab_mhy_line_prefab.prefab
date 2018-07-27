@@ -69,14 +69,14 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "New Sprite(Splash)",
+    "_name": "bg",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
     "_children": [],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 3
@@ -213,8 +213,8 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 255,
-      "b": 255,
+      "g": 119,
+      "b": 136,
       "a": 255
     },
     "_cascadeOpacityEnabled": true,
@@ -225,7 +225,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 20,
+      "width": 10,
       "height": 174
     },
     "_rotationX": 0,
@@ -253,7 +253,7 @@
     },
     "_enabled": true,
     "_spriteFrame": {
-      "__uuid__": "ef1c6849-32ae-459b-8473-ff2b801903ec"
+      "__uuid__": "a23235d1-15db-4b95-8439-a2e005bfff91"
     },
     "_type": 0,
     "_sizeMode": 0,
@@ -280,7 +280,7 @@
     "_enabled": true,
     "isAlignOnce": true,
     "_target": null,
-    "_alignFlags": 5,
+    "_alignFlags": 21,
     "_left": 0,
     "_right": 0,
     "_top": 0,
@@ -304,7 +304,7 @@
     "asset": {
       "__uuid__": "94d3fdff-6af2-4309-9b07-1d62ffd563d0"
     },
-    "fileId": "fchuoFJ0dM8Ya9EN2OvwF7",
+    "fileId": "ea8cOSfcdEA6vpmQUyqndb",
     "sync": false
   },
   {
@@ -314,7 +314,9 @@
     "node": {
       "__id__": 1
     },
-    "_enabled": true
+    "_enabled": true,
+    "bg": null,
+    "shadow": null
   },
   {
     "__type__": "cc.PrefabInfo",
