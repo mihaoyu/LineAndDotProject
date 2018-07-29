@@ -315,8 +315,13 @@
       "__id__": 1
     },
     "_enabled": true,
-    "bg": null,
-    "shadow": null
+    "bg": {
+      "__id__": 2
+    },
+    "shadow": null,
+    "line": {
+      "__id__": 6
+    }
   },
   {
     "__type__": "cc.PrefabInfo",

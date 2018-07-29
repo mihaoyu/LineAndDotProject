@@ -85,6 +85,9 @@
     "_components": [
       {
         "__id__": 32
+      },
+      {
+        "__id__": 33
       }
     ],
     "_prefab": null,
@@ -570,9 +573,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
-    "component": "",
-    "handler": "",
+    "target": {
+      "__id__": 2
+    },
+    "component": "lad_mhy_scene00",
+    "handler": "startGame",
     "customEventData": ""
   },
   {
@@ -610,7 +615,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 17
@@ -755,9 +760,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
-    "component": "",
-    "handler": "",
+    "target": {
+      "__id__": 2
+    },
+    "component": "lad_mhy_scene00",
+    "handler": "startPK",
     "customEventData": ""
   },
   {
@@ -795,7 +802,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 22
@@ -940,9 +947,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
-    "component": "",
-    "handler": "",
+    "target": {
+      "__id__": 2
+    },
+    "component": "lad_mhy_scene00",
+    "handler": "checkRank",
     "customEventData": ""
   },
   {
@@ -980,7 +989,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 27
@@ -1125,9 +1134,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
-    "component": "",
-    "handler": "",
+    "target": {
+      "__id__": 2
+    },
+    "component": "lad_mhy_scene00",
+    "handler": "moreGame",
     "customEventData": ""
   },
   {
@@ -1219,5 +1230,14 @@
     },
     "_fitWidth": true,
     "_fitHeight": false
+  },
+  {
+    "__type__": "3502cDN4W5P4K8WKDFySntJ",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true
   }
 ]

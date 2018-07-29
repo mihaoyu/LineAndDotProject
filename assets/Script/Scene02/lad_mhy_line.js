@@ -12,8 +12,9 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-       bg:cc.Node,
-       shadow:cc.Node,
+        bg:cc.Node,
+        shadow:cc.Node,
+        line:cc.Node,
     },
 
     start () {
@@ -134,4 +135,12 @@ cc.Class({
     getLineIndex:function(){
         return this.line_index;
     },
+
+    setLineColor: function (color_index) {
+        let line_color = cc.Color.BLACK;
+        line_color.fromHEX(global.LINE_COLOR[color_index]);
+        this.line.color = line_color;
+        var color = cc.Color.BLACK;
+        //this.bg.getComponent(cc.Sprite).spriteFrame = this['ball_index_' + color_index];
+    }
 });

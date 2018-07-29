@@ -416,6 +416,10 @@ var lad_mhy_globals = {
     getLineColor:function(ball_color_index){
         return this.LINE_COLOR[ball_color_index-1];
     },
+
+    passCurrentLevel:function(){
+        
+    }
 };
 
 module.exports = lad_mhy_globals;

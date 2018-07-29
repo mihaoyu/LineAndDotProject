@@ -142,6 +142,8 @@ cc.Class({
     },
 
     updateCurrentLadLevel: function () {
+        global.current_ball_color_index = parseInt(Math.random(0, 1) * global.LINE_COLOR.length);
+
         this.level_label.string = "当前等级：" + global.current_level;
 
         this.initBallsAndLinesShowStatus();
@@ -354,8 +356,6 @@ cc.Class({
         let position = this.node.convertToNodeSpaceAR(global.current_event.getLocation());
         this.near_ball_index = this.checkIfNearOtherNodes(position.x,position.y);
 
-        console.log('===============是否有nearballindex',this.near_ball_index)
-
         if(this.near_ball_index === -1){
             pos_x = position.x;
             pos_y = position.y;
@@ -376,51 +376,47 @@ cc.Class({
         let a = 0;
         this.wrong_num = 0;
 
-        //添加一个判断，只有落点正确了才会去看看是不是有交点，否则不用理会
-
-
-
         //判断移动点是否和其中的一个点重合，如果重合，则返回
         if (this.near_ball_index !== -1 && (this.near_ball_index === global.current_move_ball_index_1 || this.near_ball_index === global.current_move_ball_index_2)) {
             return;
         }
 
-        //判断其他线和当前两条移动线的交点
-        for (let i = 0;i < this.lines_array.length;i++){
-            a = this.getCrossPoints(this.lines_array[i], this.selected_line_1);
-            if (a!= -1 && this.checkIfNotAroundBallPoints(a)) {
-                let wrong_temp = this.wrong_tags_array[this.wrong_num];
+        //只有落点之后才判断交点
+        if(this.near_ball_index !== -1){
+             for (let i = 0; i < this.lines_array.length; i++) {
+                 a = this.getCrossPoints(this.lines_array[i], this.selected_line_1);
+                 if (a != -1 && this.checkIfNotAroundBallPoints(a)) {
+                     let wrong_temp = this.wrong_tags_array[this.wrong_num];
 
-                if(utils.checkIfUndefined(wrong_temp)){
-                    wrong_temp = cc.instantiate(this.wrong_prefab);
-                    wrong_temp.scale = 1.1;
-                    wrong_temp.parent = this.level_wrong_tags_layer;
-                    this.wrong_tags_array[this.wrong_num] = wrong_temp;
-                }
+                     if (utils.checkIfUndefined(wrong_temp)) {
+                         wrong_temp = cc.instantiate(this.wrong_prefab);
+                         wrong_temp.scale = 1.1;
+                         wrong_temp.parent = this.level_wrong_tags_layer;
+                         this.wrong_tags_array[this.wrong_num] = wrong_temp;
+                     }
 
-                wrong_temp.active = true;
-                wrong_temp.x = a[1];
-                wrong_temp.y = a[2];
-                this.wrong_num++;
-            }
-            
-            a = this.getCrossPoints(this.lines_array[i], this.selected_line_2);
-            if (a!= -1 && this.checkIfNotAroundBallPoints(a)) {
-                let wrong_temp = this.wrong_tags_array[this.wrong_num];
-                if (utils.checkIfUndefined(wrong_temp)) {
-                    wrong_temp = cc.instantiate(this.wrong_prefab);
-                    wrong_temp.scale = 1.1;
-                    wrong_temp.parent = this.level_wrong_tags_layer;
-                    this.wrong_tags_array[this.wrong_num] = wrong_temp;
-                }
-                wrong_temp.active = true;
-                wrong_temp.x = a[1];
-                wrong_temp.y = a[2];
-                this.wrong_num++;
-            }
+                     wrong_temp.active = true;
+                     wrong_temp.x = a[1];
+                     wrong_temp.y = a[2];
+                     this.wrong_num++;
+                 }
+
+                 a = this.getCrossPoints(this.lines_array[i], this.selected_line_2);
+                 if (a != -1 && this.checkIfNotAroundBallPoints(a)) {
+                     let wrong_temp = this.wrong_tags_array[this.wrong_num];
+                     if (utils.checkIfUndefined(wrong_temp)) {
+                         wrong_temp = cc.instantiate(this.wrong_prefab);
+                         wrong_temp.scale = 1.1;
+                         wrong_temp.parent = this.level_wrong_tags_layer;
+                         this.wrong_tags_array[this.wrong_num] = wrong_temp;
+                     }
+                     wrong_temp.active = true;
+                     wrong_temp.x = a[1];
+                     wrong_temp.y = a[2];
+                     this.wrong_num++;
+                 }
+             }
         }
-
-        //判断当前两条移动线共线情况，两条移动线共线一定有交点，共线时返回
 
         //console.log('====================当前的数量统计',this.wrong_num,this.wrong_tags_array.length)
         if (this.wrong_num < this.wrong_tags_array.length){
@@ -497,6 +493,7 @@ cc.Class({
                 //闪亮代码
                 //下一关内容刷新
                 console.log('=======================过关');
+                global.
                 this.toNextLevel();
             }else{
                 //未过关，继续
@@ -748,8 +745,6 @@ cc.Class({
         let ball_index = 0;
         for(let i = 0;i<4;i++){
             ball_index = temp_table[i];
-            //let juli1 = Math.abs(global.point_array[ball_index].x - pos_x)
-            //let juli2 = Math.abs(global.point_array[ball_index].y - pos_y)
             if(this.checkIfNear(pos_x,pos_y,global.point_array[ball_index])){
                 return ball_index;
             }
@@ -761,7 +756,6 @@ cc.Class({
         let if_near = false;
         let v1 = cc.v2(parseInt(pos_x), parseInt(pos_y));
         let v2 = cc.v2(parseInt(point.x), parseInt(point.y));
-        console.log('==============距离',v1,v2,cc.pDistance(v1, v2))
         if_near = cc.pDistance(v1, v2)<global.NEAR_DISTANCE ? true: false;
         return if_near;
     },
@@ -978,7 +972,7 @@ cc.Class({
     },
 
     addLine: function (min, max, if_random) {
-        console.log('======================每次添加后1',min, max)
+        //console.log('======================每次添加后1',min, max)
         let line_index = this.getLineNode();
         let line_node = this.lines_array[line_index];
         let start_ball = -1;
@@ -999,7 +993,7 @@ cc.Class({
             end_ball = this.init_balls_array[max];
         }
 
-        console.log('======================每次添加后2', this.current_line_had[min], min,max)
+        //console.log('======================每次添加后2', this.current_line_had[min], min,max)
 
         this.setNormalLineInfo(line_node, start_ball, end_ball);
         line_node.getComponent('lad_mhy_line').setLineIndex(line_index, min, max);
@@ -1187,6 +1181,10 @@ cc.Class({
         this.record_array = [];
     },
 
+    //提醒
+    tipOperate:function() {
+    },
+
     /////////////////////////////////////////对象池操作
     getBallNodeByBallIndex: function (ball_index) {
         let ball_node = this.init_balls_array[ball_index];
@@ -1223,6 +1221,7 @@ cc.Class({
             line_node.getComponent('lad_mhy_line').initSelf();
             line_index = this.lines_array.length - 1;
         }
+        line_node.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
         line_node.active = true;
         return line_index;
     },

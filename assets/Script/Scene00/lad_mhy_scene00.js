@@ -12,21 +12,29 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-        ball_index_1: cc.SpriteFrame,
-        ball_index_2: cc.SpriteFrame,
-        ball_index_3: cc.SpriteFrame,
-        ball_index_4: cc.SpriteFrame,
-        ball_index_5: cc.SpriteFrame,
     },
 
-    // LIFE-CYCLE CALLBACKS:
-    start () {
+    onLoad: function () {},
+
+    start: function () {
 
     },
 
-    setBallColor:function(color_index){
-        this.node.getComponent(cc.Sprite).spriteFrame = this['ball_index_' + (color_index+1)];
-    }
+    startGame:function(){
+        cc.director.loadScene('lad_mhy_scene01');
+    },
+
+    startPK:function(){
+
+    },
+
+    checkRank:function(){
+
+    },
+
+    moreGame:function(){
+
+    },
 
     // update (dt) {},
 });

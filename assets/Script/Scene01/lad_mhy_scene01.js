@@ -22,12 +22,21 @@ cc.Class({
     },
 
     onLoad:function () {
-        this.level_view.node.on('page-turning', this.onPageEvent, this);
+        //this.level_view.node.on('page-turning', this.onPageEvent, this);
     },
 
     onDestroy:function(){
+        //this.level_view.node.off('page-turning', this.onPageEvent, this);
+    },
+
+    onEnable: function () {
+        this.level_view.node.on('page-turning', this.onPageEvent, this);
+    },
+
+    onDisable: function () {
         this.level_view.node.off('page-turning', this.onPageEvent, this);
     },
+
 
     start:function () {
         //后面添加延迟0.1s执行
@@ -115,6 +124,8 @@ cc.Class({
     // 监听事件
     onPageEvent(sender, eventType) {
         // 翻页事件
+        console.log('===========================kankana', eventType, cc.PageView.EventType.PAGE_TURNING)
+
         if (eventType !== cc.PageView.EventType.PAGE_TURNING) {
             return;
         }
@@ -122,5 +133,9 @@ cc.Class({
         this.current_page = this.level_view.getCurrentPageIndex()
         this.addBtn.interactable = !(this.current_page === this.page_config_length - 1);
         this.reduceBtn.interactable = !(this.current_page === 0);
+    },
+
+    goToStartScene:function(){
+        cc.director.loadScene('lad_mhy_scene02');
     }
 });
