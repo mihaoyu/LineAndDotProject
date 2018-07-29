@@ -7,6 +7,7 @@
 // Learn life-cycle callbacks:
 //  - [Chinese] http://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] http://www.cocos2d-x.org/docs/creator/en/scripting/life-cycle-callbacks.html
+var global = require("lad_mhy_global");
 
 cc.Class({
     extends: cc.Component,
@@ -17,7 +18,7 @@ cc.Class({
     onLoad: function () {},
 
     start: function () {
-
+        global.getBestLevel();
     },
 
     startGame:function(){

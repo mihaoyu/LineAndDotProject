@@ -1,3 +1,4 @@
+var utils = require("lad_mhy_utils");
 var lad_mhy_globals = {
     //服务器设置
     ip: "https://game.zuiqiangyingyu.net/wb_n",
@@ -418,7 +419,13 @@ var lad_mhy_globals = {
     },
 
     passCurrentLevel:function(){
-        
+        if (global.current_level > global.last_open_level){
+            utils.localDataSet('best_level',global.current_level);
+        }
+    },
+
+    getBestLevel:function(){
+        global.last_open_level = utils.localDataGet('best_level',1);
     }
 };
 

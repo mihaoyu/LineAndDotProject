@@ -493,7 +493,7 @@ cc.Class({
                 //闪亮代码
                 //下一关内容刷新
                 console.log('=======================过关');
-                global.
+                utils.
                 this.toNextLevel();
             }else{
                 //未过关，继续
