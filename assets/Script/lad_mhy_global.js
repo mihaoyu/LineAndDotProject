@@ -9,7 +9,7 @@ var lad_mhy_globals = {
     BASIC_WIDTH:5,
     BASIC_HEIGHT:5,
     BASIC_BALLS_COUNT:25,
-    NEAR_DISTANCE:40,
+    NEAR_DISTANCE:55,
     BALL_DISTANCE:113,
     BASIC_BALL_RADIUS:20,
     TARGET_BALL_INDEX:25,
@@ -419,13 +419,14 @@ var lad_mhy_globals = {
     },
 
     passCurrentLevel:function(){
-        if (global.current_level > global.last_open_level){
-            utils.localDataSet('best_level',global.current_level);
+        console.log('===================aaaaaaaa',this.current_level,this.last_open_level)
+        if (this.current_level > this.last_open_level){
+            utils.localDataSet('best_level',this.current_level);
         }
     },
 
     getBestLevel:function(){
-        global.last_open_level = utils.localDataGet('best_level',1);
+        this.last_open_level = utils.localDataGet('best_level',1);
     }
 };
 

@@ -21,7 +21,6 @@ cc.Class({
     },
 
     start:function () {
-        //this.level = -1;
     },
 
     setLevelItemInfo(level){
@@ -42,7 +41,6 @@ cc.Class({
             //吐司提示
         }else{
             //进入相应等级，之后记得做个点击时间限制
-            console.log('=================当前进入level',this.level)
             global.current_level = this.level;
             cc.director.loadScene('lad_mhy_scene02');
         }

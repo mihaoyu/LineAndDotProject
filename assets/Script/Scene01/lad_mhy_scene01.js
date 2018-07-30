@@ -124,7 +124,7 @@ cc.Class({
     // 监听事件
     onPageEvent(sender, eventType) {
         // 翻页事件
-        console.log('===========================kankana', eventType, cc.PageView.EventType.PAGE_TURNING)
+        //console.log('===========================kankana', eventType, cc.PageView.EventType.PAGE_TURNING)
 
         if (eventType !== cc.PageView.EventType.PAGE_TURNING) {
             return;
@@ -137,5 +137,9 @@ cc.Class({
 
     goToStartScene:function(){
         cc.director.loadScene('lad_mhy_scene02');
+    },
+
+    goToHomeScene: function () {
+        cc.director.loadScene('lad_mhy_scene00');
     }
 });

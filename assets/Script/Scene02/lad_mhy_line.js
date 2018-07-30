@@ -22,10 +22,13 @@ cc.Class({
         this.origin_x = 0;
         this.origin_y = 0;
         this.opacity = 255;
+    },
+
+    onEnable: function () {
         this.touchEventOn();
     },
 
-    onDestroy:function(){
+    onDisable: function () {
         this.touchEventOff();
     },
 
@@ -39,16 +42,19 @@ cc.Class({
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        this.node.on(cc.Node.EventType.TOUCH_CANCEL,this.touchCancel)
     },
 
     touchEventOff: function () {
         this.node.off(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.node.off(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
         this.node.off(cc.Node.EventType.TOUCH_END, this.touchEnd, this);
+        this.node.off(cc.Node.EventType.TOUCH_CANCEL, this.touchCancel, this);
     },
 
     touchStart: function (event, touch) {
-        console.log('==================eventaaaa', event, touch, event.getTouches(), event.getID());
+        console.log('================主要查看下为啥不能动', event, touch, event.getTouches(), event.getID());
+        console.log("=====================global.current_start", global.current_move_line_index)
 
         if (this._event_id === -1) {
             this._event_id = event.getID();
@@ -59,13 +65,12 @@ cc.Class({
         }
 
         //可能需要再判断
-        if (global.current_move_line_index!==-1) {
-            console.log("=====================global.current_move",global.current_move_line_index)
+        if (global.current_move_line_index !== -1 && global.current_move_line_index !== this.line_index) {
             return;
         }
 
         //做个处理，如果已经有了current_line则忽略其他的移动行为
-        console.log('-=============line点击开始', this,event)
+        //console.log('-=============line点击开始', this,event)
 
         let position = event.getLocation();
         let pos_x = 0;
@@ -87,7 +92,8 @@ cc.Class({
             return;
         }
 
-        if (global.current_move_line_index !== this.line_index) {
+        if (global.current_move_line_index !== -1 && global.current_move_line_index !== this.line_index) {
+            console.log("=====================global.current_move", global.current_move_line_index)
             return;
         }
 
@@ -104,10 +110,17 @@ cc.Class({
             return;
         }
 
-        if (global.current_move_line_index !== this.line_index) {
+        if (global.current_move_line_index !== -1 && global.current_move_line_index !== this.line_index) {
+            console.log("=====================global.current_end", global.current_move_line_index)
             return;
         }
+
         cc.game.emit("lad_line_end");
+        this._event_id = -1;
+    },
+
+    touchCancel:function(){
+        cc.game.emit("lad_line_cancel");
         this._event_id = -1;
     },
 
