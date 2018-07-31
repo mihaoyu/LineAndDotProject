@@ -46,6 +46,9 @@ cc.Class({
         level_wrong_tags_layer:cc.Node,
 
         level_label:cc.Label,
+
+        result_node:cc.Node,
+        result_bg:cc.Node,
     },
 
     onLoad: function () {
@@ -108,7 +111,7 @@ cc.Class({
     },
 
     onDestroy: function () {
-        cc.game.off("lad_line_start", this.fingerStart, this);
+        cc.game.off("lad_line_start", this.touchStart, this);
         cc.game.off("lad_line_move", this.touchMove, this);
         cc.game.off("lad_line_end", this.touchEnd, this);
         cc.game.off("lad_line_cancel", this.touchCancel, this);
@@ -122,7 +125,7 @@ cc.Class({
     },
 
     initGameOnEvents: function () {
-        cc.game.on("lad_line_start", this.fingerStart, this);
+        cc.game.on("lad_line_start", this.touchStart, this);
         cc.game.on("lad_line_move", this.touchMove, this);
         cc.game.on("lad_line_end", this.touchEnd, this);
         cc.game.on("lad_line_cancel", this.touchCancel, this);
@@ -294,13 +297,12 @@ cc.Class({
         line_node.y = ball_1_position.y;
         line_node.rotation = utils.getTwoPointsRotation(ball_1_position, ball_2_position);
         line_node.scaleY = (utils.getTwoPointsDistance(ball_1_position, ball_2_position) / line_node.height);
+        //line_node.getComponent('lad_mhy_line').setOriginPosition();
     },
 
     setSelectedLineInfo:function(line_index,line_node,ball_1,ball_1_index){
         line_node.x = global.point_array[ball_1_index].x;
-        //ball_1.x;
         line_node.y = global.point_array[ball_1_index].y;
-        //ball_1.y;
         line_node.rotation = utils.getTwoPointsRotation(global.point_array[ball_1_index], global.current_target_position);
         line_node.scaleY = (utils.getTwoPointsDistance(global.point_array[ball_1_index], global.current_target_position) / line_node.height);
         line_node.getComponent('lad_mhy_line').setLineIndex(line_index, ball_1_index, -1);
@@ -311,17 +313,21 @@ cc.Class({
         line_node.y = global.point_array[ball_index].y;
         line_node.rotation = utils.getTwoPointsRotation(global.point_array[ball_index], global.current_target_position);
         line_node.scaleY = (utils.getTwoPointsDistance(global.point_array[ball_index], global.current_target_position) / line_node.height);
+        //line_node.getComponent('lad_mhy_line').setOriginPosition();
     },
 
-    fingerStart: function () {
+    touchStart: function (event, touch) {
+        console.log('====================fingerStart运行')
         if (this.selected_line_1 === -1) {
             global.current_selected_line_index_1 = this.getLineNode();
             this.selected_line_1 = this.lines_array[global.current_selected_line_index_1];
+            console.log('==============创建select1', global.current_selected_line_index_1)
         }
 
         if (this.selected_line_2 === -1) {
             global.current_selected_line_index_2 = this.getLineNode();
             this.selected_line_2 = this.lines_array[global.current_selected_line_index_2];
+            console.log('==============创建select2', global.current_selected_line_index_1)
         }
 
         this.selected_line_1.active = true;
@@ -331,8 +337,8 @@ cc.Class({
         global.current_move_ball_2 = this.init_balls_array[global.current_move_ball_index_2];
 
         //移动线的信息赋值，只需要指定第一个球，后面的第二球的信息会自动忽略
-        this.setSelectedLineInfo(global.current_selected_line_index_1,this.selected_line_1, global.current_move_ball_1, global.current_move_ball_index_1, true, global.current_target_position, global.current_selected_line_index_1);
-        this.setSelectedLineInfo(global.current_selected_line_index_2,this.selected_line_2, global.current_move_ball_2, global.current_move_ball_index_2, true, global.current_target_position, global.current_selected_line_index_2);
+        this.setSelectedLineInfo(global.current_selected_line_index_1, this.selected_line_1, global.current_move_ball_1, global.current_move_ball_index_1, true, global.current_target_position, global.current_selected_line_index_1);
+        this.setSelectedLineInfo(global.current_selected_line_index_2, this.selected_line_2, global.current_move_ball_2, global.current_move_ball_index_2, true, global.current_target_position, global.current_selected_line_index_2);
 
         let pos_x = global.current_target_position.x;
         let pos_y = global.current_target_position.y;
@@ -344,12 +350,6 @@ cc.Class({
         this.target_ball.x = pos_x;
         this.target_ball.y = pos_y;
         this.target_ball.active = true;
-    },
-
-    touchStart: function (event, touch) {
-        if (event.getTouches().length > 1) {
-            return;
-        }
     },
 
     touchMove:function(event){
@@ -374,8 +374,6 @@ cc.Class({
         this.target_ball.y = pos_y;
         global.current_target_position = cc.p(pos_x, pos_y);
 
-        /* this.updateSelectedLineInfo(this.selected_line_1, global.current_move_ball_1);
-        this.updateSelectedLineInfo(this.selected_line_2, global.current_move_ball_2); */
         this.updateSelectedLineInfo(this.selected_line_1, global.current_move_ball_index_1);
         this.updateSelectedLineInfo(this.selected_line_2, global.current_move_ball_index_2);
 
@@ -391,39 +389,25 @@ cc.Class({
 
         //只有落点之后才判断交点
         if(this.near_ball_index !== -1){
-             for (let i = 0; i < this.lines_array.length; i++) {
-                 a = this.getCrossPoints(this.lines_array[i], this.selected_line_1);
-                 if (a != -1 && this.checkIfNotAroundBallPoints(a)) {
-                     let wrong_temp = this.wrong_tags_array[this.wrong_num];
+            for (let i = 0; i < this.lines_array.length; i++) {
+                let a = this.getCrossPoints(this.lines_array[i], this.selected_line_1);
+                let b = this.getCrossPoints(this.lines_array[i], this.selected_line_2);
 
-                     if (utils.checkIfUndefined(wrong_temp)) {
-                         wrong_temp = cc.instantiate(this.wrong_prefab);
-                         wrong_temp.scale = 1.1;
-                         wrong_temp.parent = this.level_wrong_tags_layer;
-                         this.wrong_tags_array[this.wrong_num] = wrong_temp;
-                     }
-
-                     wrong_temp.active = true;
-                     wrong_temp.x = a[1];
-                     wrong_temp.y = a[2];
-                     this.wrong_num++;
-                 }
-
-                 a = this.getCrossPoints(this.lines_array[i], this.selected_line_2);
-                 if (a != -1 && this.checkIfNotAroundBallPoints(a)) {
-                     let wrong_temp = this.wrong_tags_array[this.wrong_num];
-                     if (utils.checkIfUndefined(wrong_temp)) {
-                         wrong_temp = cc.instantiate(this.wrong_prefab);
-                         wrong_temp.scale = 1.1;
-                         wrong_temp.parent = this.level_wrong_tags_layer;
-                         this.wrong_tags_array[this.wrong_num] = wrong_temp;
-                     }
-                     wrong_temp.active = true;
-                     wrong_temp.x = a[1];
-                     wrong_temp.y = a[2];
-                     this.wrong_num++;
-                 }
-             }
+                if(a != -1 && b != -1){
+                    if(utils.checkIfSamePoints(cc.p(a[1],a[2]),cc.p(b[1],b[2]))){
+                        //不作处理
+                    }else{
+                        this.addWrongTip(cc.p(a[1], a[2]));
+                        this.addWrongTip(cc.p(b[1], b[2]));
+                    }
+                }else{
+                    (a != -1 && this.checkIfNotAroundBallPoints(a)) ? this.addWrongTip(cc.p(a[1], a[2])): 1;
+                    (b != -1 && this.checkIfNotAroundBallPoints(b)) ? this.addWrongTip(cc.p(b[1], b[2])): 1;
+                }
+                if (!utils.checkIfUndefined(this.lines_array[i])){
+                    console.log('===============', a, b, this.lines_array[i].getComponent('lad_mhy_line').getBallsIndex())
+                }
+            }
         }
 
         //console.log('====================当前的数量统计',this.wrong_num,this.wrong_tags_array.length)
@@ -646,7 +630,7 @@ cc.Class({
     },
 
     recycleSelectedLine:function(params){
-        console.log('==================这里是需要回收的情况',params)
+        console.log('==================这里是需要回收的情况',params,this.selected_line_1,this.selected_line_2)
         let line_1_status = true;
         let line_2_status = true;
 
@@ -655,13 +639,13 @@ cc.Class({
             line_2_status = params[1];
         }
 
-        if(line_1_status){
+        if(line_1_status && this.selected_line_1 !== -1){
             this.selected_line_1.active = false;
             this.sendLineNodeToPool(this.selected_line_1);
             this.lines_array[global.current_selected_line_index_1] = undefined;
         }
 
-        if(line_2_status){
+        if (line_2_status && this.selected_line_2 !== -1) {
             this.selected_line_2.active = false;
             this.sendLineNodeToPool(this.selected_line_2);
             this.lines_array[global.current_selected_line_index_2] = undefined;
@@ -959,7 +943,7 @@ cc.Class({
         return [1, p_point1.x + (t * v1x), p_point1.y + (t * v1y)];
     },
 
-    //判断当前坐标是否在已知点附近，如果已知点附近则忽略
+    //判断当前坐标是否在已知点和已知点夹点附近，如果已知点附近则忽略
     checkIfNotAroundBallPoints:function(position){
         let ball_pos_x = 0;
         let ball_pos_y = 0;
@@ -1020,6 +1004,21 @@ cc.Class({
             temp_node.y = global.point_array[ball_index].y + 3;
             this.init_balls_nums.push(ball_index);
         }
+    },
+
+    addWrongTip: function (position) {
+        let wrong_temp = this.wrong_tags_array[this.wrong_num];
+        if (utils.checkIfUndefined(wrong_temp)) {
+            wrong_temp = cc.instantiate(this.wrong_prefab);
+            wrong_temp.scale = 1.1;
+            wrong_temp.parent = this.level_wrong_tags_layer;
+            this.wrong_tags_array[this.wrong_num] = wrong_temp;
+        }
+
+        wrong_temp.active = true;
+        wrong_temp.x = position.x;
+        wrong_temp.y = position.y;
+        this.wrong_num++;
     },
 
     deleteBall:function(ball_index,if_need_action){
@@ -1205,6 +1204,11 @@ cc.Class({
     goToHomeScene: function () {
         cc.director.loadScene('lad_mhy_scene00');
     },
+
+    closeResultNode:function(){
+
+    },
+
     /////////////////////////////////////////对象池操作
     getBallNodeByBallIndex: function (ball_index) {
         let ball_node = this.init_balls_array[ball_index];

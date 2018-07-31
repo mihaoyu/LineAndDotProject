@@ -13,7 +13,30 @@
   ],
   "design-resolution-height": 1334,
   "design-resolution-width": 750,
-  "excluded-modules": [],
+  "excluded-modules": [
+    "LabelOutline",
+    "ParticleSystem",
+    "TiledMap",
+    "Spine Skeleton",
+    "ProgressBar",
+    "Toggle",
+    "EditorBox",
+    "VideoPlayer",
+    "RichText",
+    "AudioSource",
+    "Animation",
+    "MotionStreak",
+    "Collider",
+    "Graphics",
+    "DragonBones",
+    "Physics",
+    "StudioComponent",
+    "RenderTexture",
+    "Chipmunk",
+    "Camera",
+    "Intersection",
+    "Native NetWork"
+  ],
   "fit-height": false,
   "fit-width": true,
   "group-list": [
@@ -25,6 +48,5 @@
     "width": 960
   },
   "use-customize-simulator": false,
-  "use-project-simulator-setting": false,
-  "start-scene": "current"
+  "use-project-simulator-setting": false
 }
