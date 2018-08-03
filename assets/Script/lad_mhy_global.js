@@ -31,8 +31,11 @@ var lad_mhy_globals = {
 
     load_level_config:false,
     level_config:{},
+    basic_point_array:[],
     point_array:[],
+    guide_tip_array:[],
     target_ball_position:-1,
+    guide_status:false,
 
     current_move_line_index:-1,
     current_selected_line_index_1:-1,

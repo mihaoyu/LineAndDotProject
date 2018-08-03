@@ -39,6 +39,7 @@ cc.Class({
     },
 
     touchEventOn: function () {
+        console.log('=============我感觉thisbujian',this)
         this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart, this);
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMove, this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnd, this);

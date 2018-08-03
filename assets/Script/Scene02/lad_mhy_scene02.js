@@ -49,35 +49,18 @@ cc.Class({
 
         result_node:cc.Node,
         result_bg:cc.Node,
+
+        guide_hand:cc.Node,
     },
 
     onLoad: function () {
         this.initGameOnEvents();
-        this.initVaribles();
         this.createBasicBalls();
     },
 
     start:function(){
-        this.time = 0;
-
-        this.init_balls_array = [];
-        this.init_balls_config = [];
-
-        //涉及到内存分配
-        this.ball_storge_array = [];
-        this.line_storge_array = [];
-        this.lines_array = [];
-
-        //目标
-        this.target_ball_config = [];
-        this.target_balls_nums = [];
-        this.target_lines = [];
-
-        //每个级别现存
-        this.current_line_had = [];
-        this.target_line_had = [];
-        this.record_array = [];
-
+        this.initVaribles();
+       
         global.setTargetBallPosition(this.target_bg.width, this.target_bg.height);
         this.updateCurrentLadLevel();
         this.updateTargetLadLevel();
@@ -122,6 +105,29 @@ cc.Class({
         this.selected_line_2 = -1;
         this.target_ball = -1;
         this.near_ball_index = -1;
+        this.time = 0;
+
+        this.init_balls_array = [];
+        this.init_balls_config = [];
+
+        //涉及到内存分配
+        this.ball_storge_array = [];
+        this.line_storge_array = [];
+        this.lines_array = [];
+
+        //目标
+        this.target_ball_config = [];
+        this.target_balls_nums = [];
+        this.target_lines = [];
+
+        //每个级别现存
+        this.current_line_had = [];
+        this.target_line_had = [];
+        this.record_array = [];
+
+        //提醒功能
+        this.guide_status = [];
+        this.guide_num = 1;
     },
 
     initGameOnEvents: function () {
@@ -135,12 +141,13 @@ cc.Class({
         //以前自己生成ball，现在直接给了图，这边只提供产生坐标了
         if (global.point_array.length > 1) return;
 
-        this.offset_x = -2*global.BALL_DISTANCE-2;
-        this.offset_y = -2*global.BALL_DISTANCE+5;
+        this.offset_x = -2;
+        this.offset_y = 5;
         for (let i = 0; i < global.BASIC_BALLS_COUNT; i++) {
-            let pos_x = this.offset_x + (i % global.BASIC_WIDTH) * global.BALL_DISTANCE;
-            let pos_y = this.offset_y + Math.floor(i / global.BASIC_HEIGHT) * global.BALL_DISTANCE;
+            let pos_x = this.offset_x - 2 * global.BALL_DISTANCE + (i % global.BASIC_WIDTH) * global.BALL_DISTANCE;
+            let pos_y = this.offset_y - 2 * global.BALL_DISTANCE + Math.floor(i / global.BASIC_HEIGHT) * global.BALL_DISTANCE;
             global.point_array.push(cc.p(pos_x,pos_y));
+            global.basic_point_array.push(cc.p(pos_x-this.offset_x, pos_y-this.offset_y));
         }
 
         let is_test = true;
@@ -174,7 +181,8 @@ cc.Class({
         let min = -1;
 
         this.init_balls_config = global.makeStrToArray(global.getInitConfigByLevel(global.current_level), ",");
-        
+        this.guide_config = global.makeStrToArray(global.getTipsConfigByLevel(global.current_level+1), ",");
+
         for (let i = 0; i < this.init_balls_config.length; i++) {
             ball_index_array = global.makeStrToArray(this.init_balls_config[i], "_");
             ball_index_1 = ball_index_array[0] - 0;
@@ -190,6 +198,13 @@ cc.Class({
             max = (ball_index_1 > ball_index_2) ? ball_index_1 : ball_index_2;
             min = (ball_index_1 > ball_index_2) ? ball_index_2 : ball_index_1;
             this.addLine(min, max);
+        }
+
+        this.guide_status = [];
+        this.guide_num = 0;
+        if (global.guide_status){
+            this.guide_hand.getComponent('lad_mhy_arrow').stopShow();
+            this.runGuideAction()
         }
     },
 
@@ -372,6 +387,8 @@ cc.Class({
 
         this.target_ball.x = pos_x;
         this.target_ball.y = pos_y;
+
+        //这边用run action做个缓冲效果
         global.current_target_position = cc.p(pos_x, pos_y);
 
         this.updateSelectedLineInfo(this.selected_line_1, global.current_move_ball_index_1);
@@ -389,6 +406,7 @@ cc.Class({
 
         //只有落点之后才判断交点
         if(this.near_ball_index !== -1){
+            console.log('=======================新一轮判断开始')
             for (let i = 0; i < this.lines_array.length; i++) {
                 let a = this.getCrossPoints(this.lines_array[i], this.selected_line_1);
                 let b = this.getCrossPoints(this.lines_array[i], this.selected_line_2);
@@ -396,16 +414,19 @@ cc.Class({
                 if(a != -1 && b != -1){
                     if(utils.checkIfSamePoints(cc.p(a[1],a[2]),cc.p(b[1],b[2]))){
                         //不作处理
+                        //this.checkIfNotAroundBallPoints(a) ? this.addWrongTip(cc.p(a[1], a[2])) : 1;
+                        //this.checkIfNotAroundBallPoints(b) ? this.addWrongTip(cc.p(b[1], b[2])) : 1;
                     }else{
-                        this.addWrongTip(cc.p(a[1], a[2]));
-                        this.addWrongTip(cc.p(b[1], b[2]));
+                        this.checkIfNotAroundBallPoints(a) ? this.addWrongTip(cc.p(a[1], a[2])): 1;
+                        this.checkIfNotAroundBallPoints(b) ? this.addWrongTip(cc.p(b[1], b[2])): 1;
                     }
                 }else{
                     (a != -1 && this.checkIfNotAroundBallPoints(a)) ? this.addWrongTip(cc.p(a[1], a[2])): 1;
                     (b != -1 && this.checkIfNotAroundBallPoints(b)) ? this.addWrongTip(cc.p(b[1], b[2])): 1;
                 }
+
                 if (!utils.checkIfUndefined(this.lines_array[i])){
-                    console.log('===============', a, b, this.lines_array[i].getComponent('lad_mhy_line').getBallsIndex())
+                    console.log('===============交点输出', a, b, this.lines_array[i].getComponent('lad_mhy_line').getBallsIndex())
                 }
             }
         }
@@ -447,6 +468,7 @@ cc.Class({
             let index_2 = this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').getBallsIndex()[1];
             this.deleteCurrentLine(index_2, index_1, global.current_move_line_index);
 
+            //当两个线只有一个交点的时候，会切割掉其他的线,这个情况暂未考虑
             this.addBall(this.near_ball_index);
             let c = this.checkIfNeedToCreateNewLineAndBall(index_1, index_2, this.near_ball_index);
             
@@ -495,6 +517,9 @@ cc.Class({
                 //未过关，继续
                 //console.log('=======================未过关，继续');
             }
+
+            //如果放置的位置和提醒一致，则提醒此处为true，并开启下一个，否则，还是在等反悔操作后，才会出现
+            //let guide_operate = ;
         }else{
             this.recycleSelectedLine();
             this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').resetSelf();
@@ -859,6 +884,20 @@ cc.Class({
 
     //判断交点
     getCrossPoints:function(p,m){
+    /*         
+        a = a2 - a1, p2-p1
+        b = b2 - b1. m2-m1
+        a = a1 + t a
+        b = b1 + u b
+            a1 + t a = b1 + u b
+            (a1 + t a) x b = (b1 + u b) x b
+
+        a1 x b + t a x b = b1 x b
+
+        t = (b1 - a1) x b / (a x b)
+        u = a x(a1 - b1) / (a x b)
+    */
+
         //a = cross_point 
         //p,m: 固定线，移动线
         //y = ax+b
@@ -905,42 +944,75 @@ cc.Class({
 
         //只有固定线确定是固定线的时候才拥有第二个点
         let p_point2 = cc.p(global.point_array[p_ball_2_index].x, global.point_array[p_ball_2_index].y);
-        let v1x = p_point2.x - p_point1.x;
-        let v1y = p_point2.y - p_point1.y;
-        let v2x = m_point2.x - m_point1.x;
-        let v2y = m_point2.y - m_point1.y;
-        let result_1 = v1x * v2y - v2x * v1y;
+        
+        //a
+        let s10_x = p_point2.x - p_point1.x;
+        let s10_y = p_point2.y - p_point1.y;
+ 
+        //b
+        let s32_x = m_point2.x - m_point1.x;
+        let s32_y = m_point2.y - m_point1.y;
 
-        //非移动线相交
-        if (result_1 == 0){ //平行或共线
+        //aXb
+        let result_1 = s10_x * s32_y - s32_x * s10_y;
+
+        //非移动线相交(a,b是否为0)
+
+        console.log('======================判断是否是共线', result_1, m_ball_index, p_ball_1_index, p_ball_2_index, utils.checkIfSameDirection(p_point1, m_point2, p_point2))
+
+        if (Math.abs(result_1 - 0) < 1){ //平行或共线
             //假如共线，则显示为当前固定两个球中间点
-            //console.log('=============这是非移动线平行时候的情况',m_ball_index,p_ball_1_index,this.near_ball_index)
+            let length_1 = 0;
+            let length_2 = 0;
+            let return_array = [];
             if (m_ball_index === p_ball_1_index && this.near_ball_index !== -1 && utils.checkIfSameDirection(p_point1, m_point2, p_point2)) {
-                return [1, (p_point1.x + p_point2.x) / 2, (p_point1.y + p_point2.y) / 2];
+                length_1 = utils.getTwoPointsDistance(p_point1, m_point2);
+                length_2 = utils.getTwoPointsDistance(p_point1, p_point2);
+
+                if(length_1 < length_2){
+                    return_array = [1, (p_point1.x + m_point2.x) / 2, (p_point1.y + m_point2.y) / 2];
+                }else{
+                    return_array = [1, (p_point1.x + p_point2.x) / 2, (p_point1.y + p_point2.y) / 2];
+                }
+                return return_array;
             } else if (m_ball_index === p_ball_2_index && this.near_ball_index !== -1 && utils.checkIfSameDirection(p_point2, m_point2, p_point1)) {
-                return [1, (p_point1.x + p_point2.x) / 2, (p_point1.y + p_point2.y) / 2];
+                length_1 = utils.getTwoPointsDistance(p_point2, m_point2);
+                length_2 = utils.getTwoPointsDistance(p_point1, p_point2);
+                                
+                if (length_1 < length_2) {
+                    return_array = [1, (p_point2.x + m_point2.x) / 2, (p_point2.y + m_point2.y) / 2];
+                } else {
+                    return_array = [1, (p_point1.x + p_point2.x) / 2, (p_point1.y + p_point2.y) / 2];
+                }
+                
+                return return_array;
             }
             return a; // Collinear
         }
 
         let not_parallelism = result_1 > 0; 
-        let v3x = p_point1.x - m_point1.x;
-        let v3y = p_point1.y - m_point1.y;
-        let result_2 = v1x * v3y - v1y * v3x;
+        let s02_x = p_point1.x - m_point1.x;
+        let s02_y = p_point1.y - m_point1.y;
+        let result_2 = s10_x * s02_y - s10_y * s02_x;
 
         if ((result_2 < 0) == not_parallelism) //参数是大于等于0且小于等于1的，分子分母必须同号且分子小于等于分母
             return a; // No cross
 
-        let result_3 = v2x * v3y - v2y * v3x;
-        if ((result_3 < 0) == not_parallelism)
+        let result_3 = s32_x * s02_y - s32_y * s02_x;
+            
+        if ((result_3 < 0) == not_parallelism){
             return a; // No cross
-
-        if (((result_2 > result_1) == not_parallelism) || ((result_3 > result_1) == not_parallelism))
-            return a; // No cross
+        }
 
         // cross
         let t = result_3 / result_1;
-        return [1, p_point1.x + (t * v1x), p_point1.y + (t * v1y)];
+        let u = result_2 / result_1;
+
+        if((t<0||t>1) || (u<0||u>1)){
+            return a;
+        }
+
+        return [1, p_point1.x + (t * s10_x), p_point1.y + (t * s10_y)];
     },
 
     //判断当前坐标是否在已知点和已知点夹点附近，如果已知点附近则忽略
@@ -1134,11 +1206,13 @@ cc.Class({
 
     //查看内存是否泄漏
     checkXieTMDLou:function(){
+        this.runGuideAction();
         console.log('===============================,this.init_ball_array', this.init_balls_array, this.ball_storge_array.length,this.target_ball)
         console.log('===============================,this.ball_storge_array',this.ball_storge_array,this.ball_storge_array.length)
         console.log('===============================,this.line_storge_array', this.line_storge_array,this.line_storge_array.length)
         console.log('===============================,this.lines_array', this.lines_array,this.lines_array.length)
         console.log('===============================,this.target_lines', this.target_lines,this.target_lines.length)
+        console.log('======================',global.point_array)
     },
 
     //上一关
@@ -1197,16 +1271,54 @@ cc.Class({
         this.record_array = [];
     },
 
-    //提醒
-    tipOperate:function() {
-    },
-
     goToHomeScene: function () {
         cc.director.loadScene('lad_mhy_scene00');
     },
 
     closeResultNode:function(){
+    },
 
+    guideStartBtn:function(){
+        global.guide_status = true;
+        this.updateCurrentLadLevel();
+        this.startGuide();
+    },
+
+    startGuide:function(){
+        if(!this.global.guide_status){
+            return;
+        }
+        //箭头移动，reapeatforever
+        //for(let i = ;i<this.guid)
+    },
+
+    runGuideAction:function(){
+        //todo
+
+        this.guide_num = this.guide_num+1;
+
+
+        let start_pos = -1;
+        let target_pos = -1;
+        let tip_string = -1;
+        let tip_array = [];
+        
+        this.guide_status[this.guide_num] = true;
+
+        if(this.guide_num >= this.guide_config.length){
+            console.log('============引导走完了')
+            global.current_level = global.current_level+1;
+            this.guide_config = global.makeStrToArray(global.getTipsConfigByLevel(global.current_level + 1), ",");
+            return;
+        }
+        tip_string = this.guide_config[this.guide_num];
+        console.log('=-===================tips_string',tip_string)
+
+        tip_array = global.makeStrToArray(tip_string,"_");
+        start_pos = cc.p((global.basic_point_array[tip_array[0] - 0].x + global.basic_point_array[tip_array[1] - 0].x) / 2, (global.basic_point_array[tip_array[0] - 0].y + global.basic_point_array[tip_array[1] - 0].y) / 2);
+        target_pos = cc.p(global.basic_point_array[tip_array[2] - 0].x,global.basic_point_array[tip_array[2]-0].y);
+        this.guide_hand.getComponent('lad_mhy_arrow').stopShow();
+        this.guide_hand.getComponent('lad_mhy_arrow').startShow(start_pos,target_pos);
     },
 
     /////////////////////////////////////////对象池操作

@@ -39,6 +39,8 @@ cc.Class({
         global.select_level = this.level;
         if(this.level > global.last_open_level){
             //吐司提示
+            global.current_level = this.level;
+            cc.director.loadScene('lad_mhy_scene02');
         }else{
             //进入相应等级，之后记得做个点击时间限制
             global.current_level = this.level;

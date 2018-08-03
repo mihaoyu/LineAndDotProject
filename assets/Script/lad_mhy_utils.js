@@ -25,6 +25,14 @@ var lad_mhy_utils = {
         return Math.sqrt(diff_x*diff_x+diff_y*diff_y);
     },
 
+    getTwoPointsXYDistance: function (p1, p2) {
+        let diff_x = parseInt(p2.x) - parseInt(p1.x);
+        let diff_y = parseInt(p2.y) - parseInt(p1.y);
+        //diff_x = Math.abs(diff_x);
+        //diff_y = Math.abs(diff_y);
+        return [diff_x,diff_y];
+    },
+
     checkIfInArray:function(num,array){
         let if_in = false;
         for (let index = 0; index < array.length; index++) {
