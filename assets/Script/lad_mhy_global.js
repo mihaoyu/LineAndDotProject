@@ -28,6 +28,7 @@ var lad_mhy_globals = {
     current_level:1,
     last_open_level:1,
     select_level:-1,
+    coin_num:0,
 
     load_level_config:false,
     level_config:{},
@@ -430,7 +431,15 @@ var lad_mhy_globals = {
 
     getBestLevel:function(){
         this.last_open_level = utils.localDataGet('best_level',1);
-    }
+    },
+
+    getCoinNum: function () {
+        this.coin_num = utils.localDataGet('coin_num', 0);
+    },
+
+    getCoinReward:function(){
+        utils.localDataSet('coin_num', this.coin_num);
+    },
 };
 
 module.exports = lad_mhy_globals;

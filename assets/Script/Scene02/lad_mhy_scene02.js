@@ -51,6 +51,7 @@ cc.Class({
         result_bg:cc.Node,
 
         guide_hand:cc.Node,
+        reward_coin: cc.Label,
     },
 
     onLoad: function () {
@@ -59,6 +60,7 @@ cc.Class({
     },
 
     start:function(){
+        this.reward_coin.string = global.coin_num;
         this.initVaribles();
        
         global.setTargetBallPosition(this.target_bg.width, this.target_bg.height);
@@ -1206,7 +1208,6 @@ cc.Class({
 
     //查看内存是否泄漏
     checkXieTMDLou:function(){
-        this.runGuideAction();
         console.log('===============================,this.init_ball_array', this.init_balls_array, this.ball_storge_array.length,this.target_ball)
         console.log('===============================,this.ball_storge_array',this.ball_storge_array,this.ball_storge_array.length)
         console.log('===============================,this.line_storge_array', this.line_storge_array,this.line_storge_array.length)
@@ -1294,9 +1295,7 @@ cc.Class({
 
     runGuideAction:function(){
         //todo
-
         this.guide_num = this.guide_num+1;
-
 
         let start_pos = -1;
         let target_pos = -1;
@@ -1312,9 +1311,9 @@ cc.Class({
             return;
         }
         tip_string = this.guide_config[this.guide_num];
-        console.log('=-===================tips_string',tip_string)
-
         tip_array = global.makeStrToArray(tip_string,"_");
+        console.log('=-===================tips_string', tip_string)
+
         start_pos = cc.p((global.basic_point_array[tip_array[0] - 0].x + global.basic_point_array[tip_array[1] - 0].x) / 2, (global.basic_point_array[tip_array[0] - 0].y + global.basic_point_array[tip_array[1] - 0].y) / 2);
         target_pos = cc.p(global.basic_point_array[tip_array[2] - 0].x,global.basic_point_array[tip_array[2]-0].y);
         this.guide_hand.getComponent('lad_mhy_arrow').stopShow();

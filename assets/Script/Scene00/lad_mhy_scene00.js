@@ -19,6 +19,7 @@ cc.Class({
 
     start: function () {
         global.getBestLevel();
+        global.getCoinNum();
     },
 
     startGame:function(){

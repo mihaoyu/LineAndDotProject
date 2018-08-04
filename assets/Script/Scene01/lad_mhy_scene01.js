@@ -19,6 +19,7 @@ cc.Class({
         page:cc.Node,
         addBtn:cc.Button,
         reduceBtn:cc.Button,
+        reward_coin:cc.Label,
     },
 
     onLoad:function () {
@@ -49,6 +50,7 @@ cc.Class({
         this.current_page = 0;
         this.page_list = [];
         this.level_node = [];
+        this.reward_coin.string = global.coin_num;
         this.page_config_length = Math.ceil(global.game_init_line_config.length/12);
         this.initPageNodeByLength();
     },
