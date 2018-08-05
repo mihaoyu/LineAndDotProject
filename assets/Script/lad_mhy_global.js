@@ -12,7 +12,7 @@ var lad_mhy_globals = {
     NEAR_DISTANCE:55,
     BALL_DISTANCE:113,
     BASIC_BALL_RADIUS:20,
-    TARGET_BALL_INDEX:25,
+    FINGER_MOVE_BALL_INDEX:25,
 
     //游戏枚举
     GAME_MODEL: {
@@ -35,7 +35,7 @@ var lad_mhy_globals = {
     basic_point_array:[],
     point_array:[],
     guide_tip_array:[],
-    target_ball_position:-1,
+    finger_move_ball_position:-1,
     guide_status:false,
 
     current_move_line_index:-1,
@@ -221,7 +221,7 @@ var lad_mhy_globals = {
     ],
 
     game_tips_config:[
-        "",
+        "6_8_2,6_16_10,16_18_22,8_18_14",
         "6_8_12,16_18_12,16_6_10,8_18_14",
         "7_16_6,18_7_8,16_18_22",
         "6_8_12,16_18_12",
@@ -358,8 +358,8 @@ var lad_mhy_globals = {
     //生成伪目标坐标
     setTargetBallPosition:function(width,height){
         //这个以后还要变，再说
-        if(this.target_ball_position === -1){
-            this.target_ball_position = [];
+        if(this.finger_move_ball_position === -1){
+            this.finger_move_ball_position = [];
         }else{
             return;
         }
@@ -367,8 +367,8 @@ var lad_mhy_globals = {
         let offset_x = width/2-19;
         let offset_y = height/2-18; 
         for(let i =0;i<25;i++){
-            this.target_ball_position.push((i % 5) * 50 - offset_x);
-            this.target_ball_position.push(Math.floor(i / 5) * 50 - offset_y);
+            this.finger_move_ball_position.push((i % 5) * 50 - offset_x);
+            this.finger_move_ball_position.push(Math.floor(i / 5) * 50 - offset_y);
         }
     },
 
