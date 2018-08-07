@@ -42,6 +42,7 @@ cc.Class({
         target_bg:cc.Node,
         target_layer: cc.Node,
         level_line_layer:cc.Node,
+        level_selected_line_layer: cc.Node,
         level_ball_layer:cc.Node,
         level_wrong_tags_layer:cc.Node,
 
@@ -312,38 +313,39 @@ cc.Class({
     setNormalLineInfo: function (line_node, ball_1_position,ball_2_position) {
         line_node.x = ball_1_position.x;
         line_node.y = ball_1_position.y;
-        line_node.rotation = utils.getTwoPointsRotation(ball_1_position, ball_2_position);
+        line_node.getComponent('lad_mhy_line').setRotation(utils.getTwoPointsRotation(ball_1_position, ball_2_position));
         line_node.scaleY = (utils.getTwoPointsDistance(ball_1_position, ball_2_position) / line_node.height);
     },
 
-    setSelectedLineInfo:function(line_index,line_node,ball_1,ball_1_index){
-        line_node.x = global.point_array[ball_1_index].x;
-        line_node.y = global.point_array[ball_1_index].y;
-        line_node.rotation = utils.getTwoPointsRotation(global.point_array[ball_1_index], global.current_target_position);
-        line_node.scaleY = (utils.getTwoPointsDistance(global.point_array[ball_1_index], global.current_target_position) / line_node.height);
-        line_node.getComponent('lad_mhy_line').setLineIndex(line_index, ball_1_index, -1);
+    setSelectedLineInfo:function(line_index,line_node,ball_index){
+        line_node.x = global.point_array[ball_index].x;
+        line_node.y = global.point_array[ball_index].y;
+        line_node.getComponent('lad_mhy_line').setRotation(utils.getTwoPointsRotation(global.point_array[ball_index], global.current_target_position));
+        line_node.scaleY = (utils.getTwoPointsDistance(global.point_array[ball_index], global.current_target_position) / line_node.height);
+        line_node.getComponent('lad_mhy_line').setLineIndex(line_index, ball_index, -1);
     },
 
     updateSelectedLineInfo:function(line_node,ball_index){
         line_node.x = global.point_array[ball_index].x;
         line_node.y = global.point_array[ball_index].y;
-        line_node.rotation = utils.getTwoPointsRotation(global.point_array[ball_index], global.current_target_position);
+        line_node.getComponent('lad_mhy_line').setRotation(utils.getTwoPointsRotation(global.point_array[ball_index], global.current_target_position));
         line_node.scaleY = (utils.getTwoPointsDistance(global.point_array[ball_index], global.current_target_position) / line_node.height);
     },
 
     touchStart: function (event, touch) {
         console.log('====================fingerStart运行')
         if (this.selected_line_1 === -1) {
-            global.current_selected_line_index_1 = this.getLineNode();
-            this.selected_line_1 = this.lines_array[global.current_selected_line_index_1];
-            //console.log('==============创建select1', global.current_selected_line_index_1)
+            this.selected_line_1 = cc.instantiate(this.line_prefab);
+            this.selected_line_1.parent = this.level_selected_line_layer;
         }
 
         if (this.selected_line_2 === -1) {
-            global.current_selected_line_index_2 = this.getLineNode();
-            this.selected_line_2 = this.lines_array[global.current_selected_line_index_2];
-            //console.log('==============创建select2', global.current_selected_line_index_1)
+            this.selected_line_2 = cc.instantiate(this.line_prefab);
+            this.selected_line_2.parent = this.level_selected_line_layer;
         }
+
+        this.selected_line_1.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
+        this.selected_line_2.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
 
         this.selected_line_1.active = true;
         this.selected_line_2.active = true;
@@ -352,8 +354,8 @@ cc.Class({
         global.current_move_ball_2 = this.init_balls_array[global.current_move_ball_index_2];
 
         //移动线的信息赋值，只需要指定第一个球，后面的第二球的信息会自动忽略
-        this.setSelectedLineInfo(global.current_selected_line_index_1, this.selected_line_1, global.current_move_ball_1, global.current_move_ball_index_1, true, global.current_target_position, global.current_selected_line_index_1);
-        this.setSelectedLineInfo(global.current_selected_line_index_2, this.selected_line_2, global.current_move_ball_2, global.current_move_ball_index_2, true, global.current_target_position, global.current_selected_line_index_2);
+        this.setSelectedLineInfo(-1, this.selected_line_1, global.current_move_ball_index_1);
+        this.setSelectedLineInfo(-1, this.selected_line_2, global.current_move_ball_index_2);
 
         let pos_x = global.current_target_position.x;
         let pos_y = global.current_target_position.y;
@@ -470,7 +472,7 @@ cc.Class({
         }
 
         if (this.checkIfACorrectBall()) {
-            //消除当前line
+            //消除移动line
             let index_1 = this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').getBallsIndex()[0];
             let index_2 = this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').getBallsIndex()[1];
             this.deleteCurrentLine(index_2, index_1, global.current_move_line_index);
@@ -489,22 +491,23 @@ cc.Class({
 
             let d = -1;
             let e = -1;
+
             if (!need_create[0]) {
                 d = this.selected_line_1.getComponent('lad_mhy_line').getBallsIndex()[0];
                 e = this.selected_line_1.getComponent('lad_mhy_line').getLineIndex();
                 temp_array['added_lines'].push([d, this.near_ball_index, e]);
-                this.setSelectedLineToNormalLine(this.selected_line_1, this.near_ball_index);
+                this.addLine(this.selected_line_1.getComponent('lad_mhy_line').getBallsIndex()[0], this.near_ball_index);
             }
 
             if (!need_create[1]) {
                 d = this.selected_line_2.getComponent('lad_mhy_line').getBallsIndex()[0];
                 e = this.selected_line_2.getComponent('lad_mhy_line').getLineIndex();
                 temp_array['added_lines'].push([d, this.near_ball_index, e]);
-                this.setSelectedLineToNormalLine(this.selected_line_2, this.near_ball_index);
+                this.addLine(this.selected_line_2.getComponent('lad_mhy_line').getBallsIndex()[0], this.near_ball_index);
             }
 
             this.record_array.push(temp_array);
-            this.recycleSelectedLine(need_create);
+            this.recycleSelectedLine();
             console.log('================当前操作步骤', temp_array)
 
             if (this.checkIfPassLevel()){
@@ -672,27 +675,9 @@ cc.Class({
         this.sendBallNodeToPool(global.FINGER_MOVE_BALL_INDEX);
     },
 
-    recycleSelectedLine:function(params){
-        console.log('==================这里是需要回收的情况',params,this.selected_line_1,this.selected_line_2)
-        let line_1_status = true;
-        let line_2_status = true;
-
-        if(!utils.checkIfUndefined(params)){
-            line_1_status = params[0];
-            line_2_status = params[1];
-        }
-
-        if(line_1_status && this.selected_line_1 !== -1){
-            this.selected_line_1.active = false;
-            this.sendLineNodeToPool(this.selected_line_1);
-            this.lines_array[global.current_selected_line_index_1] = undefined;
-        }
-
-        if (line_2_status && this.selected_line_2 !== -1) {
-            this.selected_line_2.active = false;
-            this.sendLineNodeToPool(this.selected_line_2);
-            this.lines_array[global.current_selected_line_index_2] = undefined;
-        }
+    recycleSelectedLine:function(){
+        this.selected_line_1.active = false;
+        this.selected_line_2.active = false;
     },
 
     checkIfNearOtherNodes:function(pos_x,pos_y){
@@ -707,8 +692,6 @@ cc.Class({
             pos_y > global.point_array[i * 5].y ? in_row = i : 1 ;
             pos_x > global.point_array[i].x ? in_column = i: 1;
         }
-
-        //console.log('===================aaaa',in_row,in_column)
 
         if (in_row === -1 && in_column === -1) {
             if (this.checkIfNear(pos_x, pos_y, global.point_array[0])) {
@@ -1045,8 +1028,10 @@ cc.Class({
         return true;
     },
 
-    addLine: function (min, max, if_random) {
+    addLine: function (a, b, if_random) {
         //console.log('======================每次添加后1',min, max)
+        let min = a<b?a:b;
+        let max = a>b?a:b;
         let line_index = this.getLineNode();
         let line_node = this.lines_array[line_index];
         let start_ball_position = -1;
@@ -1376,7 +1361,7 @@ cc.Class({
         let ball_node = this.init_balls_array[ball_index];
         if (utils.checkIfUndefined(ball_node)) {
             ball_node = this.getBallNodeFromPool();
-            ball_node.parent = this.level_ball_layer;
+            ball_node.parent = (ball_index > 24) ? this.level_wrong_tags_layer : this.level_ball_layer;
             ball_node.scale = 1;
             this.init_balls_array[ball_index] = ball_node;
         }

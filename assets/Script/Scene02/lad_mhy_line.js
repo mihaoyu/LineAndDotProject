@@ -22,6 +22,7 @@ cc.Class({
         this.origin_x = 0;
         this.origin_y = 0;
         this.opacity = 255;
+        this.current_color_index = -1;
     },
 
     onEnable: function () {
@@ -57,6 +58,8 @@ cc.Class({
         console.log('================主要查看下为啥不能动', event, touch, event.getTouches(), event.getID());
         console.log("=====================global.current_start", global.current_move_line_index)
 
+        if(this.line_index === -1)return;
+
         //可能需要再判断
         if (global.current_move_line_index !== -1 && global.current_move_line_index !== this.line_index) {
             return;
@@ -91,6 +94,8 @@ cc.Class({
     },
 
     touchMove: function (event, touch) {
+        if (this.line_index === -1) return;
+
         if (this._event_id != event.getID()) {
             return;
         }
@@ -109,6 +114,8 @@ cc.Class({
     },
 
     touchEnd: function (event, touch) {
+        if (this.line_index === -1) return;
+
         if (this._event_id != event.getID()) {
             return;
         }
@@ -157,6 +164,8 @@ cc.Class({
     },
 
     setLineColor: function (color_index) {
+        if (this.current_color_index === color_index)return;
+        
         let line_color = cc.Color.BLACK;
         line_color.fromHEX(global.LINE_COLOR[color_index]);
         this.line.color = line_color;
@@ -164,9 +173,15 @@ cc.Class({
         //this.bg.getComponent(cc.Sprite).spriteFrame = this['ball_index_' + color_index];
     },
 
-    setOriginPosition(){
+    setOriginPosition:function(){
         this.origin_x = this.node.x;
         this.origin_y = this.node.y;
         //console.log('=============位置信息设定',this.origin_x,this.origin_y)
+    },
+
+    setRotation:function(rotation){
+        this.node.rotation = parseInt(rotation);
+        this.shadow.x = Math.sin(parseInt(rotation) * 2 * Math.PI / 360) * 6;
+        this.shadow.y = Math.cos(parseInt(rotation) * 2 * Math.PI / 360) * 6;
     },
 });
