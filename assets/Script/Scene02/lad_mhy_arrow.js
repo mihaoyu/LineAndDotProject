@@ -34,12 +34,12 @@ cc.Class({
         this.node.active = true;
 
         this.mask_node.y = 0;
-        let move_to_action1 = cc.moveTo(0.8, cc.p(0,this.arrow_node.height));
+        let move_to_action1 = cc.moveTo(0.8, cc.p(0, this.arrow_node.height)).easing(cc.easeExponentialOut(3.0));
         let delay_action1 = cc.delayTime(0.8);
         let back_func1 = cc.callFunc(function () {
             this.mask_node.y = -this.arrow_node.height;
         }, this);
-        let move_to_action2 = cc.moveTo(0.8, cc.p(0,0));
+        let move_to_action2 = cc.moveTo(0.8, cc.p(0, 0)).easing(cc.easeExponentialOut(3.0));
         let back_func2 = cc.callFunc(function(){
             this.mask_node.y = 0;
         },this);

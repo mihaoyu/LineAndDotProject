@@ -440,6 +440,10 @@ cc.Class({
         }
     },
 
+    moveToPosition:(){
+
+    },
+
     touchEnd:function(event){
         if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1) return;
 
