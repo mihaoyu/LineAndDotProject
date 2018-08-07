@@ -440,7 +440,7 @@ cc.Class({
         }
     },
 
-    moveToPosition:(){
+    moveToPosition:function(){
 
     },
 
