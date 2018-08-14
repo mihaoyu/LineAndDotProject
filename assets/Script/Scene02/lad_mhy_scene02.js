@@ -169,7 +169,7 @@ cc.Class({
             global.basic_point_array.push(cc.p(pos_x-this.offset_x, pos_y-this.offset_y));
         }
 
-        let is_test = true;
+        let is_test = false;
         if (is_test) {
             for (let i = 0; i < 25; i++) {
                 let ball_node = cc.instantiate(this.test_ball_prefab);
@@ -393,7 +393,9 @@ cc.Class({
         let pos_x = position.x;
         let pos_y = position.y;
 
-        console.log('====================',this.init_balls_array)
+        global.current_target_position = cc.p(pos_x, pos_y);
+        this.updateSelectedLineInfo(this.selected_line_1, global.current_move_ball_index_1);
+        this.updateSelectedLineInfo(this.selected_line_2, global.current_move_ball_index_2);
 
         this.finger_move_ball.x = pos_x;
         this.finger_move_ball.y = pos_y;
@@ -424,7 +426,6 @@ cc.Class({
 
         //这边用run action做个缓冲效果
         global.current_target_position = cc.p(pos_x, pos_y);
-
         this.updateSelectedLineInfo(this.selected_line_1, global.current_move_ball_index_1);
         this.updateSelectedLineInfo(this.selected_line_2, global.current_move_ball_index_2);
 

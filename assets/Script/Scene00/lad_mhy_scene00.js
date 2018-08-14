@@ -17,7 +17,11 @@ cc.Class({
     properties: {
     },
 
-    onLoad: function () {},
+    onLoad: function () {
+        wx.showShareMenu({
+            withShareTicket: true
+        })
+    },
 
     start: function () {
         let self = this;
@@ -25,6 +29,12 @@ cc.Class({
         global.getCoinNum();
 
         shareUtils.httpRequestShareImageUrls(self.shareUrlsCallBacks);
+
+        this.scheduleOnce(function () {
+            cc.director.preloadScene("lad_mhy_scene01", function () {
+                console.log('====================预加载完毕')
+            });
+        }, 0.1)
     },
 
     startGame:function(){

@@ -73,11 +73,6 @@ cc.Class({
             }
         }
 
-        //console.log('=============位置信息设定', this.node.x, this.node.y)
-
-        //做个处理，如果已经有了current_line则忽略其他的移动行为
-        //console.log('-=============line点击开始', this,event)
-
         this.origin_x = this.node.x;
         this.origin_y = this.node.y;
 
@@ -91,7 +86,6 @@ cc.Class({
         //传送给主场景，告知是哪个line开始动
         global.setMoveBallAndLine(this.line_index, this.ball_index_1, this.ball_index_2,pos_x,pos_y);
         global.current_finger_ball_pos = event.getLocation();
-        console.log('==================位置信息', global.current_finger_ball_pos)
         cc.game.emit("lad_line_start");
     },
 
