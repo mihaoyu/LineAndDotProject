@@ -26,6 +26,7 @@
 
 var global = require("lad_mhy_global");
 var utils = require("lad_mhy_utils");
+var shareUtils = require("lad_mhy_shareUtils");
 
 cc.Class({
     extends: cc.Component,
@@ -51,9 +52,14 @@ cc.Class({
         result_node:cc.Node,
         result_bg:cc.Node,
         result_level_num:cc.Label,
+        result_coin_got:cc.Label,
 
         guide_hand:cc.Node,
         reward_coin: cc.Label,
+        tip_btn:cc.Button,
+        guide_cost:cc.Node,
+        guide_cost_bg:cc.Node,
+        guide_btn_node:cc.Node,
     },
 
     onLoad: function () {
@@ -65,6 +71,7 @@ cc.Class({
         this.reward_coin.string = global.coin_num;
         this.initVaribles();
         global.setTargetBallPosition(this.target_bg.width, this.target_bg.height);
+        this.initConstItems();
         this.updateCurrentLadLevel();
         this.updateTargetLadLevel();
         global.initMoveBallAndLine();
@@ -105,6 +112,9 @@ cc.Class({
         this.selected_line_1 = -1;
         this.selected_line_2 = -1;
         this.finger_move_ball = -1;
+        this.circle_1 = -1;
+        this.circle_2 = -1;
+
         this.near_ball_index = -1;
         this.time = 0;
 
@@ -135,10 +145,15 @@ cc.Class({
     },
 
     initGameOnEvents: function () {
+        let self = this;
         cc.game.on("lad_line_start", this.touchStart, this);
         cc.game.on("lad_line_move", this.touchMove, this);
         cc.game.on("lad_line_end", this.touchEnd, this);
         cc.game.on("lad_line_cancel", this.touchCancel, this);
+
+        this.guide_cost_bg.on(cc.Node.EventType.TOUCH_END, function (event) {
+            self.guideNodeClose();
+        });
     },
 
     createBasicBalls: function () {
@@ -166,13 +181,31 @@ cc.Class({
         }
     },
 
+    initConstItems:function(){
+        this.selected_line_1 = cc.instantiate(this.line_prefab);
+        this.selected_line_1.parent = this.level_selected_line_layer;
+        this.selected_line_1.active = false;
+
+        this.selected_line_2 = cc.instantiate(this.line_prefab);
+        this.selected_line_2.parent = this.level_selected_line_layer;
+        this.selected_line_2.active = false;
+
+        this.circle_1 = cc.instantiate(this.circle_prefab);
+        this.circle_1.parent = this.level_line_layer;
+        this.circle_1.active = false;
+    
+        this.circle_2 = cc.instantiate(this.circle_prefab);
+        this.circle_2.parent = this.level_line_layer;
+        this.circle_2.active = false;
+
+
+        this.finger_move_ball = this.getBallNodeByBallIndex(global.FINGER_MOVE_BALL_INDEX);
+        this.finger_move_ball.active = false;
+    },
+
     updateCurrentLadLevel: function () {
         global.current_ball_color_index = parseInt(Math.random(0, 1) * global.LINE_COLOR.length);
-
-        //this.level_label.string = "当前等级：" + global.current_level;
-
         this.initBallsAndLinesShowStatus();
-        //后面再去考虑优化,这边数组分配有点问题
 
         this.current_line_had = [];
         this.init_balls_nums = [];
@@ -210,6 +243,12 @@ cc.Class({
             this.guide_hand.getComponent('lad_mhy_arrow').stopShow();
             this.runGuideAction();
         }
+
+        this.finger_move_ball.getComponent('lad_mhy_ball').setBallColor(global.current_ball_color_index);
+        this.selected_line_1.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
+        this.selected_line_2.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
+        this.circle_1.getComponent('lad_mhy_circle').setCircleColor(global.current_ball_color_index);
+        this.circle_2.getComponent('lad_mhy_circle').setCircleColor(global.current_ball_color_index);
     },
 
     updateTargetLadLevel:function(){
@@ -334,21 +373,13 @@ cc.Class({
 
     touchStart: function (event, touch) {
         console.log('====================fingerStart运行')
-        if (this.selected_line_1 === -1) {
-            this.selected_line_1 = cc.instantiate(this.line_prefab);
-            this.selected_line_1.parent = this.level_selected_line_layer;
-        }
-
-        if (this.selected_line_2 === -1) {
-            this.selected_line_2 = cc.instantiate(this.line_prefab);
-            this.selected_line_2.parent = this.level_selected_line_layer;
-        }
-
-        this.selected_line_1.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
-        this.selected_line_2.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
-
+     
+      
+        this.finger_move_ball.active = true;
         this.selected_line_1.active = true;
         this.selected_line_2.active = true;
+
+        this.showCircle(global.current_move_ball_index_1,global.current_move_ball_index_2);
 
         global.current_move_ball_1 = this.init_balls_array[global.current_move_ball_index_1];
         global.current_move_ball_2 = this.init_balls_array[global.current_move_ball_index_2];
@@ -357,12 +388,11 @@ cc.Class({
         this.setSelectedLineInfo(-1, this.selected_line_1, global.current_move_ball_index_1);
         this.setSelectedLineInfo(-1, this.selected_line_2, global.current_move_ball_index_2);
 
-        let pos_x = global.current_target_position.x;
-        let pos_y = global.current_target_position.y;
+      
+        let position = this.level_line_layer.convertToNodeSpaceAR(global.current_finger_ball_pos);
+        let pos_x = position.x;
+        let pos_y = position.y;
 
-        if (this.finger_move_ball === -1) {
-            this.finger_move_ball = this.getBallNodeByBallIndex(global.FINGER_MOVE_BALL_INDEX);
-        }
         console.log('====================',this.init_balls_array)
 
         this.finger_move_ball.x = pos_x;
@@ -377,7 +407,8 @@ cc.Class({
 
         let pos_x = 0;
         let pos_y = 0;
-        let position = this.node.convertToNodeSpaceAR(global.current_event.getLocation());
+
+        let position = this.level_line_layer.convertToNodeSpaceAR(global.current_finger_ball_pos);
         this.near_ball_index = this.checkIfNearOtherNodes(position.x,position.y);
 
         if(this.near_ball_index === -1){
@@ -407,9 +438,8 @@ cc.Class({
             return;
         }
 
-        //只有落点之后才判断交点
+        //交点这里还是可以继续优化的
         if(this.near_ball_index !== -1){
-            console.log('=======================新一轮判断开始')
             for (let i = 0; i < this.lines_array.length; i++) {
                 let a = this.getCrossPoints(this.lines_array[i], this.selected_line_1);
                 let b = this.getCrossPoints(this.lines_array[i], this.selected_line_2);
@@ -429,9 +459,12 @@ cc.Class({
                 }
 
                 if (!utils.checkIfUndefined(this.lines_array[i])){
-                    console.log('===============交点输出', a, b, this.lines_array[i].getComponent('lad_mhy_line').getBallsIndex())
+                    //console.log('===============交点输出', a, b, this.lines_array[i].getComponent('lad_mhy_line').getBallsIndex())
                 }
             }
+            //两条选择线的交点
+            a = this.getCrossPoints(this.selected_line_2, this.selected_line_1);
+            (a != -1 && this.checkIfNotAroundBallPoints(a)) ? this.addWrongTip(cc.p(a[1], a[2])): 1;
         }
 
         //console.log('====================当前的数量统计',this.wrong_num,this.wrong_tags_array.length)
@@ -442,12 +475,11 @@ cc.Class({
         }
     },
 
-    moveToPosition:function(){
-
-    },
-
     touchEnd:function(event){
-        if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1) return;
+        if (global.current_move_ball_1 === -1 || global.current_move_ball_2 === -1){
+            this.disappearCircleNotCorrect();
+            return;
+        }
 
         //current_move_ball_1这个标记其实是用来标记是否移动了线，只有移动了线
         if (global.current_move_ball_1 !== -1 || global.current_move_ball_2 !== -1) {
@@ -468,17 +500,20 @@ cc.Class({
             this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').resetSelf();
             this.recycleSelectedLine();
             this.initMoveStatusParams();
+            this.disappearCircleNotCorrect();
             return;
         }
 
         if (this.checkIfACorrectBall()) {
             //消除移动line
+            this.disappearCircleCorrect();
             let index_1 = this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').getBallsIndex()[0];
             let index_2 = this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').getBallsIndex()[1];
             this.deleteCurrentLine(index_2, index_1, global.current_move_line_index);
 
             //当两个线只有一个交点的时候，会切割掉其他的线,这个情况暂未考虑
             this.addBall(this.near_ball_index);
+
             let c = this.checkIfNeedToCreateNewLineAndBall(index_1, index_2, this.near_ball_index);
             
             let need_create = c[0];
@@ -516,6 +551,7 @@ cc.Class({
                 this.showResultNode();
                 this.toNextLevel();
                 global.passCurrentLevel()
+                this.reward_coin.string = global.coin_num;
             }else{
                 let tip_string = -1;
                 let tip_array = [];
@@ -543,6 +579,7 @@ cc.Class({
             }
         }else{
             //引导暂停，等回退到相应的内容重新开启
+            this.disappearCircleNotCorrect();
             this.recycleSelectedLine();
             this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').resetSelf();
         }
@@ -550,6 +587,7 @@ cc.Class({
     },
 
     touchCancel:function(){
+        this.disappearCircleNotCorrect();
         this.recycleSelectedLine();
         this.lines_array[global.current_move_line_index].getComponent('lad_mhy_line').resetSelf();
         this.initMoveStatusParams();
@@ -666,13 +704,11 @@ cc.Class({
     },
 
     initMoveStatusParams:function(){
-        this.finger_move_ball = -1;
+        this.finger_move_ball.active = false;
         this.wrong_num = 0;
         this.near_ball_index = -1;
-        this.selected_line_1 = -1;
-        this.selected_line_2 = -1;
         global.initMoveBallAndLine();
-        this.sendBallNodeToPool(global.FINGER_MOVE_BALL_INDEX);
+        //this.sendBallNodeToPool(global.FINGER_MOVE_BALL_INDEX);
     },
 
     recycleSelectedLine:function(){
@@ -1037,7 +1073,7 @@ cc.Class({
         let start_ball_position = -1;
         let end_ball_position = -1;
 
-         let start_index = parseInt(Math.random() * 2);
+        let start_index = parseInt(Math.random() * 2);
         if(utils.checkIfUndefined(if_random)){
             //以后添加动画用到的
             if (start_index === 1) {
@@ -1054,6 +1090,7 @@ cc.Class({
 
         this.setNormalLineInfo(line_node, start_ball_position, end_ball_position);
         line_node.getComponent('lad_mhy_line').setLineIndex(line_index, min, max);
+        line_node.getComponent('lad_mhy_line').setLineColor(global.current_ball_color_index);
 
         if (utils.checkIfUndefined(this.current_line_had[min])) {
             this.current_line_had[min] = [];
@@ -1066,12 +1103,14 @@ cc.Class({
     },
 
     addBall:function(ball_index){
+        console.log('==========================看看这个添加',ball_index)
         let index_had_create = utils.checkIfInArray(ball_index, this.init_balls_nums);
         if (!index_had_create) {
             let temp_node = this.getBallNodeByBallIndex(ball_index);
-            temp_node.x = global.point_array[ball_index].x + 2;
-            temp_node.y = global.point_array[ball_index].y + 3;
+            temp_node.x = global.point_array[ball_index].x + 0;
+            temp_node.y = global.point_array[ball_index].y + 0;
             this.init_balls_nums.push(ball_index);
+            temp_node.getComponent('lad_mhy_ball').setBallColor(global.current_ball_color_index);
         }
     },
 
@@ -1223,6 +1262,7 @@ cc.Class({
     },
 
     toNextLevel:function(){
+        this.tip_btn.interactable = !global.guide_status;
         global.guide_status = false;
         this.guide_hand.getComponent('lad_mhy_arrow').stopShow();
 
@@ -1270,6 +1310,61 @@ cc.Class({
         }
     },
 
+    showCircle:function(index_1,index_2){
+        if(index_1 === -1 || index_2 === -1)return;
+
+        this.circle_1.active = true;
+        this.circle_2.active = true;
+        this.circle_1.opacity = 0;
+        this.circle_2.opacity = 0;
+        this.circle_1.stopAllActions();
+        this.circle_2.stopAllActions();
+        let show_action_1 = cc.fadeIn(0.3);
+        let scale_to_action_1 = cc.scaleTo(0.3, 1.5, 1.5);
+        let show_action_2 = cc.fadeIn(0.3);
+        let scale_to_action_2 = cc.scaleTo(0.3, 1.5, 1.5);
+
+        this.circle_1.x = global.basic_point_array[index_1].x+2;
+        this.circle_1.y = global.basic_point_array[index_1].y+3;
+        this.circle_2.x = global.basic_point_array[index_2].x+2;
+        this.circle_2.y = global.basic_point_array[index_2].y+3;
+
+        this.circle_1.runAction( cc.spawn(show_action_1,scale_to_action_1));
+        this.circle_2.runAction( cc.spawn(show_action_2,scale_to_action_2));
+    },
+
+    disappearCircleNotCorrect: function () {
+        let scale_to_action_1 = cc.scaleTo(0.3, 0.1, 0.1);
+        let scale_to_action_2 = cc.scaleTo(0.3, 0.1, 0.1);
+        let func_1 = cc.callFunc(function(){
+            this.circle_1.active = false;
+        },this)
+
+        let func_2 = cc.callFunc(function () {
+            this.circle_2.active = false;
+        }, this)
+        this.circle_1.runAction(cc.sequence(scale_to_action_1,func_1));
+        this.circle_2.runAction(cc.sequence(scale_to_action_2,func_2));
+    },
+
+    disappearCircleCorrect: function () {
+        let scale_to_action_1 = cc.scaleTo(0.2, 1.8, 1.8);
+        let scale_to_action_2 = cc.scaleTo(0.2, 1.8, 1.8);
+        let fade_in_aciton_1 = cc.fadeOut(0.2)
+        let fade_in_aciton_2 = cc.fadeOut(0.2)
+
+        let func_1 = cc.callFunc(function () {
+            this.circle_1.active = false;
+        }, this)
+
+        let func_2 = cc.callFunc(function () {
+            this.circle_2.active = false;
+        }, this)
+
+        this.circle_1.runAction(cc.sequence(cc.spawn(scale_to_action_1, fade_in_aciton_1), func_1));
+        this.circle_2.runAction(cc.sequence(cc.spawn(scale_to_action_2, fade_in_aciton_2), func_2));
+    },
+
     //重来
     retryOperate:function(){
         this.updateCurrentLadLevel();
@@ -1285,6 +1380,7 @@ cc.Class({
         this.result_node.active = true;
         this.result_bg.active = true;
         this.result_level_num.string = global.current_level;
+        this.result_coin_got = 10; 
     },
 
     closeResultNode:function(){
@@ -1294,40 +1390,81 @@ cc.Class({
 
     shareBtn:function(){
         let self = this;
-        var data = null;//bcbk_mhy_shareUtils.getShareInfo(6);
-        if (data == null) {
-            cc.loader.loadRes("texture/share", function (err, data) {
+        var data = shareUtils.getShareInfo(3);
+        if (utils.checkIfWeChat()) {
+            if (data == null) {
+                cc.loader.loadRes("texture/share", function (err, data) {
+                    wx.shareAppMessage({
+                        title: shareUtils.defaultTitle,
+                        imageUrl: data.url,
+                        success(res) {
+                            wx.showToast({
+                                title: '分享成功',
+                            })
+                        },
+                        fail(res) {}
+                    });
+                });
+            } else {
                 wx.shareAppMessage({
-                    title: "默认分享语",
-                    imageUrl: data.url,
+                    title: data.title,
+                    imageUrl: data.imageUrl,
                     success(res) {
-                        //self.getPianoScoreAction();
-                        //bcbk_mhy_global.shareToGetPianoScore();
                         wx.showToast({
                             title: '分享成功',
-                        })
+                        }) 
+                        //双倍状态
+                        //self.getPianoScoreAction();
+                        //global.shareToGetPianoScore();
                     },
-                    fail(res) {
-                    }
+                    fail(res) {}
                 });
-            });
-        } else {
-            wx.shareAppMessage({
-                title: data.title,
-                imageUrl: data.imageUrl,
-                success(res) {
-                    //self.getPianoScoreAction();
-                    //bcbk_mhy_global.shareToGetPianoScore();
-                },
-                fail(res) {
-                }
-            });
+            }
         }
     },
 
-    guideStartBtn:function(){
+    guideNodeClose:function(){
+        let self = this;
+        this.guide_btn_node.stopAllActions();
+        this.guide_btn_node.runAction(cc.sequence(cc.moveTo(0.2, cc.winSize.width, this.guide_btn_node.y),cc.callFunc(function name(params) {
+            self.guide_cost.active = false;
+        })));
+    },
+
+    guideNodeShow:function(){
+        //this.tip_btn.interactable = !global.guide_status;
+        if (global.guide_status || global.current_level === 1) {
+            return;
+        }
+
+        this.guide_cost.active = true;
+        this.guide_btn_node.x = -cc.winSize.width/2;
+        this.guide_btn_node.runAction(cc.moveTo(0.2, 0, this.guide_btn_node.y));
+    },
+
+    guideByCoinCost:function(){
+        if (global.coin_num <= 100){
+            if (utils.checkIfWeChat()) {
+                wx.showToast({
+                    title:'金币不足！'
+                })
+            }
+            console.log('===================金币不足')
+            return;
+        }
+
+        global.coin_num -= 100;
+        this.guide_cost.active = false;
         global.guide_status = true;
         this.updateCurrentLadLevel();
+    },
+
+    guideByWatchVideo:function(){
+        //视频
+    },
+
+    guideByShare:function(){
+        //群分享
     },
 
     runGuideAction:function(){
@@ -1365,7 +1502,6 @@ cc.Class({
             ball_node.scale = 1;
             this.init_balls_array[ball_index] = ball_node;
         }
-        ball_node.getComponent('lad_mhy_ball').setBallColor(global.current_ball_color_index);
         ball_node.active = true;
         return this.init_balls_array[ball_index];
     },
@@ -1440,6 +1576,7 @@ cc.Class({
         }
         return this.line_storge_array.pop();
     },
+
 
     /////////////////////////////////////////对象池操作
 });

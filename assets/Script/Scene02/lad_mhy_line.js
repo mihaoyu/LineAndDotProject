@@ -55,8 +55,8 @@ cc.Class({
     },
 
     touchStart: function (event, touch) {
-        console.log('================主要查看下为啥不能动', event, touch, event.getTouches(), event.getID());
-        console.log("=====================global.current_start", global.current_move_line_index)
+        //console.log('================主要查看下为啥不能动', event, touch, event.getTouches(), event.getID());
+        //console.log("=====================global.current_start", global.current_move_line_index)
 
         if(this.line_index === -1)return;
 
@@ -73,7 +73,7 @@ cc.Class({
             }
         }
 
-        console.log('=============位置信息设定', this.node.x, this.node.y)
+        //console.log('=============位置信息设定', this.node.x, this.node.y)
 
         //做个处理，如果已经有了current_line则忽略其他的移动行为
         //console.log('-=============line点击开始', this,event)
@@ -90,6 +90,8 @@ cc.Class({
 
         //传送给主场景，告知是哪个line开始动
         global.setMoveBallAndLine(this.line_index, this.ball_index_1, this.ball_index_2,pos_x,pos_y);
+        global.current_finger_ball_pos = event.getLocation();
+        console.log('==================位置信息', global.current_finger_ball_pos)
         cc.game.emit("lad_line_start");
     },
 
@@ -109,7 +111,7 @@ cc.Class({
         this.node.x += delta.x;
         this.node.y += delta.y;
 
-        global.current_event = event;
+        global.current_finger_ball_pos = event.getLocation();
         cc.game.emit("lad_line_move");
     },
 

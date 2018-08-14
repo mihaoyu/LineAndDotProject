@@ -202,10 +202,13 @@ var lad_mhy_utils = {
     },
 
     checkIfSamePoints:function(a,b) {
-                                console.log('============相同点', a, b, (Math.abs(a.x - b.x) < 5) && (Math.abs(a.y - b.y) < 5))
         let if_same = false;
         if_same = (Math.abs(a.x - b.x) < 5) && (Math.abs(a.y - b.y) < 5);
         return if_same;
+    },
+
+    checkIfWeChat:function(){
+        return cc.sys.platform === cc.sys.WECHAT_GAME;
     }
 };
 

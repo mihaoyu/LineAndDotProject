@@ -425,8 +425,14 @@ var lad_mhy_globals = {
     passCurrentLevel:function(){
         console.log('===================aaaaaaaa',this.current_level,this.last_open_level)
         if (this.current_level > this.last_open_level){
-            utils.localDataSet('best_level',this.current_level);
+            this.coin_num += 10;
+            this.saveCoinNum();
+            this.saveBestLevel();
         }
+    },
+
+    saveBestLevel:function(){
+        utils.localDataSet('best_level', this.current_level);
     },
 
     getBestLevel:function(){
@@ -435,9 +441,10 @@ var lad_mhy_globals = {
 
     getCoinNum: function () {
         this.coin_num = utils.localDataGet('coin_num', 0);
+        this.coin_num = this.coin_num - 0;
     },
 
-    getCoinReward:function(){
+    saveCoinNum:function(){
         utils.localDataSet('coin_num', this.coin_num);
     },
 };

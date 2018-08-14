@@ -28,7 +28,7 @@ cc.Class({
     },
 
     setCircleColor: function (color_index) {
-        this.node.getComponent(cc.Sprite).spriteFrame = this['circle_index_' + color_index];
+        this.node.getComponent(cc.Sprite).spriteFrame = this['circle_index_' + (color_index+1)];
     }
     // update (dt) {},
 });

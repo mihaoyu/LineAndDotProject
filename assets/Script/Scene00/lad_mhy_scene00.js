@@ -8,6 +8,8 @@
 //  - [Chinese] http://docs.cocos.com/creator/manual/zh/scripting/life-cycle-callbacks.html
 //  - [English] http://www.cocos2d-x.org/docs/creator/en/scripting/life-cycle-callbacks.html
 var global = require("lad_mhy_global");
+var utils = require("lad_mhy_utils");
+var shareUtils = require("lad_mhy_shareUtils");
 
 cc.Class({
     extends: cc.Component,
@@ -18,8 +20,11 @@ cc.Class({
     onLoad: function () {},
 
     start: function () {
+        let self = this;
         global.getBestLevel();
         global.getCoinNum();
+
+        shareUtils.httpRequestShareImageUrls(self.shareUrlsCallBacks);
     },
 
     startGame:function(){
@@ -38,5 +43,18 @@ cc.Class({
 
     },
 
+    shareUrlsCallBacks:function(){
+        let share_data = shareUtils.getShareInfo(3);
+        if (utils.checkIfWeChat()) {
+            wx.onShareAppMessage(function (res) {
+                return {
+                    title: share_data.title,
+                    imageUrl: share_data.imageUrl,
+                    success(res) {},
+                    fail(res) {}
+                }
+            })
+        }
+    }
     // update (dt) {},
 });
